@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>亀道場 — Kame Dojo</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1e;--bg2:#111827;--panel:#1a2340;--border:#2a3a60;
+  --accent:#4a8aff;--accent2:#ff6a2a;--gold:#ffe066;--green:#2aaa5a;
+  --red:#dd3333;--text:#e8eaf6;--text-dim:#8a9ac0;--radius:10px;
+  --shadow:0 4px 24px rgba(0,0,20,0.7);
+}
+html,body{height:100%}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+#app{min-height:100vh;display:flex;flex-direction:column}
+button{cursor:pointer;border:none;font-family:inherit}
+.btn-primary{background:var(--accent);color:#fff;padding:10px 22px;border-radius:var(--radius);font-size:1rem;font-weight:700;transition:background .15s,transform .1s}
+.btn-primary:hover{background:#6aaaff}
+.btn-primary:active{transform:scale(.97)}
+.btn-secondary{background:var(--panel);color:var(--text);padding:10px 22px;border-radius:var(--radius);font-size:1rem;border:1px solid var(--border);transition:background .15s}
+.btn-secondary:hover{background:#253060}
+.btn-back{background:transparent;color:var(--text-dim);font-size:.85rem;padding:6px 12px;border-radius:6px;border:1px solid var(--border);transition:color .15s,background .15s}
+.btn-back:hover{color:var(--text);background:var(--panel)}
+.choice-btn{background:var(--panel);color:var(--text);border:2px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.95rem;font-weight:600;transition:background .12s,border-color .12s,transform .1s;text-align:left;width:100%}
+.choice-btn:not(:disabled):hover{background:#253060;border-color:var(--accent);transform:translateX(3px)}
+.choice-btn.correct{background:#1a4a2a;border-color:var(--green);color:#6affaa}
+.choice-btn.wrong{background:#4a1a1a;border-color:var(--red);color:#ff8a8a}
+.choice-btn:disabled{opacity:.8;cursor:default}
+.hud{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.hud-label{font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.hud-value{font-size:1rem;font-weight:700;color:var(--gold)}
+.lives{font-size:1.1rem;margin-left:auto}
+/* MENU */
+.menu-wrap{display:flex;flex-direction:column;align-items:center;padding:24px 16px 40px;gap:18px;min-height:100vh;background:radial-gradient(ellipse at top,#1a2a50 0%,var(--bg) 70%)}
+.logo{font-size:3rem;font-weight:900;color:var(--gold);text-shadow:0 0 20px rgba(255,224,102,.5);line-height:1}
+.logo-sub{font-size:1rem;color:var(--text-dim);letter-spacing:4px;text-transform:uppercase;margin-top:-10px}
+.level-picker{display:flex;gap:10px}
+.lvl-btn{background:var(--panel);color:var(--text-dim);border:2px solid var(--border);border-radius:8px;padding:8px 20px;font-size:1rem;font-weight:700;transition:all .15s}
+.lvl-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.lvl-btn:hover:not(.active){border-color:var(--accent);color:var(--text)}
+.mode-cards{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;width:100%;max-width:680px}
+.mode-card{background:var(--panel);border:2px solid var(--border);border-radius:14px;padding:20px 16px;width:190px;display:flex;flex-direction:column;align-items:center;gap:6px;transition:border-color .15s,transform .15s,box-shadow .15s;box-shadow:var(--shadow)}
+.mode-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 8px 32px rgba(74,138,255,.25)}
+.mode-icon{font-size:2.2rem}.mode-name{font-size:1rem;font-weight:700;color:var(--gold)}
+.mode-desc{font-size:.8rem;color:var(--text-dim)}.mode-score{font-size:.78rem;color:var(--text-dim);margin-top:4px}
+/* DASH */
+.dash-wrap{display:flex;flex-direction:column;min-height:100vh}
+#dash-canvas{width:100%;display:block;background:#0a1a30;image-rendering:pixelated}
+.dash-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;background:var(--bg2)}
+.dash-feedback{padding:8px 12px;font-size:.85rem;min-height:36px;background:var(--bg2);border-top:1px solid var(--border);color:var(--text-dim)}
+.dash-feedback.fb-ok{color:#6affaa;background:#0a2a1a}
+.dash-feedback.fb-bad{color:#ff8a8a;background:#2a0a0a}
+.dash-feedback.fb-end{color:var(--text);font-size:1rem;padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px;background:var(--bg2)}
+.dash-feedback.fb-end button{margin:0 6px}
+/* DOJO */
+.dojo-wrap{display:flex;flex-direction:column;min-height:100vh;padding:12px;gap:12px;max-width:640px;margin:0 auto;width:100%}
+.battle-scene{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border-radius:var(--radius);border:1px solid var(--border);padding:16px;gap:12px}
+.combatant{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.c-name{font-size:.85rem;font-weight:700;color:var(--gold);text-align:center}
+.c-sprite{font-size:3rem}
+.hp-bar-wrap{width:100%;height:10px;background:#0a1220;border-radius:5px;overflow:hidden;border:1px solid var(--border)}
+.hp-bar{height:100%;border-radius:5px;transition:width .4s ease}
+.hp-num{font-size:.75rem;color:var(--text-dim)}.vs-label{font-size:1.4rem;font-weight:900;color:var(--text-dim)}
+.battle-log{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;font-size:.9rem;min-height:48px;color:var(--text)}
+.question-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;min-height:60px}
+.q-text{font-size:1rem;font-weight:600;color:var(--text);line-height:1.5}
+.dojo-choices{display:flex;flex-direction:column;gap:8px}
+.score-row{font-size:.9rem;color:var(--text-dim);text-align:right}
+.score-row b{color:var(--gold)}
+.end-btns{display:flex;gap:10px;justify-content:center;margin-top:8px}
+.reorder-words,.reorder-answer{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-height:42px;padding:8px;background:#0a1220;border-radius:8px;border:1px dashed var(--border)}
+.word-chip{background:var(--accent);color:#fff;padding:6px 12px;border-radius:20px;font-size:.95rem;font-weight:600;cursor:pointer;transition:background .12s,transform .1s;user-select:none}
+.word-chip:hover{background:#6aaaff;transform:scale(1.05)}
+.word-chip.placed{background:#2a6a3a}
+.reorder-answer em{color:var(--text-dim);font-style:italic;font-size:.85rem;align-self:center}
+/* GARDEN */
+.garden-wrap{display:flex;flex-direction:column;min-height:100vh}
+.garden-hud{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.garden-plot{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:linear-gradient(to bottom,#0a1a10,#0f2a18);min-height:140px;border-bottom:2px solid #1a4a28;justify-content:center}
+.plant-cell{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid transparent;transition:border-color .2s,background .2s;cursor:default}
+.plant-cell.stage-3{border-color:#3aaa5a;background:rgba(58,170,90,.1)}
+.plant-label{font-size:.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px}
+.garden-question-area{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;max-width:600px;margin:0 auto;width:100%}
+.garden-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:12px}
+.plant-stage-hint{font-size:.8rem;color:var(--text-dim);margin-bottom:4px}
+.q-text-main{font-size:1rem;font-weight:600;color:var(--text);line-height:1.5}
+.garden-choices{display:flex;flex-direction:column;gap:8px}
+.garden-choice{background:var(--bg2)}
+.garden-feedback{font-size:.85rem;min-height:24px;color:var(--text-dim)}
+.garden-feedback.fb-ok{color:#6affaa}.garden-feedback.fb-bad{color:#ff8a8a}
+.garden-progress{text-align:center;padding:8px;font-size:.8rem;color:var(--text-dim);background:var(--bg2);border-top:1px solid var(--border)}
+.center-msg{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;height:60vh;font-size:1rem;color:var(--text-dim)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA — embedded so file:// works without a server
+// ═══════════════════════════════════════════════════════
+const KAME_DATA = {
+  n5: {
+    kanji:[
+      {id:"n5-k-001",question:"日",options:["にち / ひ","つき / がつ","やま / さん","かわ / かせん"],answer:0,explanation:"日 means 'day' or 'sun'. Read as にち (nichi) or ひ (hi)."},
+      {id:"n5-k-002",question:"月",options:["にち / ひ","つき / がつ","やま / さん","かわ / かせん"],answer:1,explanation:"月 means 'moon' or 'month'. Read as つき (tsuki) or がつ (gatsu)."},
+      {id:"n5-k-003",question:"山",options:["にち / ひ","つき / がつ","やま / さん","かわ / かせん"],answer:2,explanation:"山 means 'mountain'. Read as やま (yama) or さん (san)."},
+      {id:"n5-k-004",question:"川",options:["にち / ひ","やま / さん","かわ / かせん","き / もく"],answer:2,explanation:"川 means 'river'. Read as かわ (kawa) or かせん (kasen)."},
+      {id:"n5-k-005",question:"木",options:["み / じつ","き / もく","はな / か","さかな / ぎょ"],answer:1,explanation:"木 means 'tree' or 'wood'. Read as き (ki) or もく (moku)."},
+      {id:"n5-k-006",question:"火",options:["き / もく","ひ / か","みず / すい","つち / ど"],answer:1,explanation:"火 means 'fire'. Read as ひ (hi) or か (ka)."},
+      {id:"n5-k-007",question:"水",options:["ひ / か","みず / すい","つち / ど","かね / きん"],answer:1,explanation:"水 means 'water'. Read as みず (mizu) or すい (sui)."},
+      {id:"n5-k-008",question:"土",options:["みず / すい","かね / きん","つち / ど","ひ / か"],answer:2,explanation:"土 means 'earth' or 'soil'. Read as つち (tsuchi) or ど (do)."},
+      {id:"n5-k-009",question:"金",options:["つち / ど","かね / きん","はな / か","め / もく"],answer:1,explanation:"金 means 'gold' or 'money'. Read as かね (kane) or きん (kin)."},
+      {id:"n5-k-010",question:"人",options:["ひと / じん","め / もく","みち / どう","て / しゅ"],answer:0,explanation:"人 means 'person'. Read as ひと (hito) or じん (jin)."},
+      {id:"n5-k-011",question:"口",options:["て / しゅ","め / もく","くち / こう","みみ / じ"],answer:2,explanation:"口 means 'mouth'. Read as くち (kuchi) or こう (kou)."},
+      {id:"n5-k-012",question:"目",options:["くち / こう","め / もく","みみ / じ","て / しゅ"],answer:1,explanation:"目 means 'eye'. Read as め (me) or もく (moku)."},
+      {id:"n5-k-013",question:"耳",options:["め / もく","て / しゅ","みみ / じ","くち / こう"],answer:2,explanation:"耳 means 'ear'. Read as みみ (mimi) or じ (ji)."},
+      {id:"n5-k-014",question:"手",options:["みみ / じ","て / しゅ","あし / そく","き / もく"],answer:1,explanation:"手 means 'hand'. Read as て (te) or しゅ (shu)."},
+      {id:"n5-k-015",question:"足",options:["て / しゅ","あし / そく","くち / こう","め / もく"],answer:1,explanation:"足 means 'foot' or 'leg'. Read as あし (ashi) or そく (soku)."},
+      {id:"n5-k-016",question:"大",options:["ちいさい / しょう","おおきい / だい","たかい / こう","ながい / ちょう"],answer:1,explanation:"大 means 'big'. Read as おおきい (ookii) or だい (dai)."},
+      {id:"n5-k-017",question:"小",options:["ちいさい / しょう","おおきい / だい","たかい / こう","ながい / ちょう"],answer:0,explanation:"小 means 'small'. Read as ちいさい (chiisai) or しょう (shou)."},
+      {id:"n5-k-018",question:"上",options:["した / か","うえ / じょう","なか / ちゅう","そと / がい"],answer:1,explanation:"上 means 'above' or 'up'. Read as うえ (ue) or じょう (jou)."},
+      {id:"n5-k-019",question:"下",options:["うえ / じょう","した / か","なか / ちゅう","みぎ / う"],answer:1,explanation:"下 means 'below' or 'down'. Read as した (shita) or か (ka)."},
+      {id:"n5-k-020",question:"中",options:["した / か","なか / ちゅう","うえ / じょう","そと / がい"],answer:1,explanation:"中 means 'middle' or 'inside'. Read as なか (naka) or ちゅう (chuu)."},
+      {id:"n5-k-021",question:"一",options:["に / じ","いち / いつ","さん / みつ","よん / し"],answer:1,explanation:"一 means 'one'. Read as いち (ichi) or いつ (itsu)."},
+      {id:"n5-k-022",question:"二",options:["いち / いつ","に / じ","さん / みつ","よん / し"],answer:1,explanation:"二 means 'two'. Read as に (ni) or じ (ji)."},
+      {id:"n5-k-023",question:"三",options:["に / じ","さん / みつ","よん / し","ご / いつ"],answer:1,explanation:"三 means 'three'. Read as さん (san) or みつ (mitsu)."},
+      {id:"n5-k-024",question:"四",options:["さん / みつ","よん / し","ご / いつ","ろく / りく"],answer:1,explanation:"四 means 'four'. Read as よん (yon) or し (shi)."},
+      {id:"n5-k-025",question:"五",options:["よん / し","ご / いつ","ろく / りく","なな / しち"],answer:1,explanation:"五 means 'five'. Read as ご (go) or いつ (itsu)."}
+    ],
+    grammar:[
+      {id:"n5-g-001",question:"私___学生です。(I am a student.)",options:["が","は","を","に"],answer:1,explanation:"は (wa) is the topic marker particle."},
+      {id:"n5-g-002",question:"本___読みます。(I read a book.)",options:["は","が","を","で"],answer:2,explanation:"を (wo) marks the direct object."},
+      {id:"n5-g-003",question:"学校___行きます。(I go to school.)",options:["を","は","に","が"],answer:2,explanation:"に (ni) marks direction/destination."},
+      {id:"n5-g-004",question:"図書館___勉強します。(I study at the library.)",options:["に","で","を","が"],answer:1,explanation:"で (de) marks location of action."},
+      {id:"n5-g-005",question:"これ___私のかばんです。(This is my bag.)",options:["は","が","を","で"],answer:0,explanation:"は (wa) is the topic marker."},
+      {id:"n5-g-006",question:"毎日、朝ごはん___食べます。(I eat breakfast every day.)",options:["に","で","を","は"],answer:2,explanation:"を marks the direct object."},
+      {id:"n5-g-007",question:"友達___手紙を書きます。(I write a letter to a friend.)",options:["で","に","を","が"],answer:1,explanation:"に marks indirect object/recipient."},
+      {id:"n5-g-008",question:"電車___来ます。(I come by train.)",options:["に","で","を","は"],answer:1,explanation:"で marks means of transport."},
+      {id:"n5-g-009",question:"猫___います。(There is a cat.)",options:["は","を","が","に"],answer:2,explanation:"が marks the subject with います/あります."},
+      {id:"n5-g-010",question:"Arrange: (I will not go to school tomorrow.)",type:"reorder",words:["学校に","明日は","行きません"],answer:1,explanation:"Correct: 明日は学校に行きません。Time expressions come first."}
+    ],
+    vocabulary:[
+      {id:"n5-v-001",question:"What does 'ありがとう' mean?",options:["Goodbye","Thank you","Good morning","Sorry"],answer:1,explanation:"ありがとう (arigatou) means 'Thank you'."},
+      {id:"n5-v-002",question:"What does 'おはようございます' mean?",options:["Good evening","Good night","Good morning","Goodbye"],answer:2,explanation:"おはようございます means 'Good morning'."},
+      {id:"n5-v-003",question:"What does 'すみません' mean?",options:["Thank you","Excuse me / Sorry","You're welcome","Please"],answer:1,explanation:"すみません means 'Excuse me' or 'I'm sorry'."},
+      {id:"n5-v-004",question:"What does '食べる' mean?",options:["to drink","to sleep","to eat","to walk"],answer:2,explanation:"食べる (taberu) means 'to eat'."},
+      {id:"n5-v-005",question:"What does '飲む' mean?",options:["to eat","to drink","to read","to write"],answer:1,explanation:"飲む (nomu) means 'to drink'."},
+      {id:"n5-v-006",question:"What does '見る' mean?",options:["to hear","to speak","to see / watch","to think"],answer:2,explanation:"見る (miru) means 'to see' or 'to watch'."},
+      {id:"n5-v-007",question:"What does '聞く' mean?",options:["to see","to listen / ask","to speak","to read"],answer:1,explanation:"聞く (kiku) means 'to listen' or 'to ask'."},
+      {id:"n5-v-008",question:"What does '話す' mean?",options:["to write","to read","to speak","to walk"],answer:2,explanation:"話す (hanasu) means 'to speak'."},
+      {id:"n5-v-009",question:"What does '読む' mean?",options:["to write","to read","to speak","to think"],answer:1,explanation:"読む (yomu) means 'to read'."},
+      {id:"n5-v-010",question:"What does '書く' mean?",options:["to read","to speak","to write","to draw"],answer:2,explanation:"書く (kaku) means 'to write'."},
+      {id:"n5-v-011",question:"What does 'かわいい' mean?",options:["scary","cute","beautiful","interesting"],answer:1,explanation:"かわいい (kawaii) means 'cute'."},
+      {id:"n5-v-012",question:"What does 'おいしい' mean?",options:["delicious","hot (temperature)","cold","sweet"],answer:0,explanation:"おいしい (oishii) means 'delicious'."},
+      {id:"n5-v-013",question:"What does '学校' mean?",options:["hospital","station","school","library"],answer:2,explanation:"学校 (gakkou) means 'school'."},
+      {id:"n5-v-014",question:"What does '先生' mean?",options:["student","teacher","friend","family"],answer:1,explanation:"先生 (sensei) means 'teacher'."},
+      {id:"n5-v-015",question:"What does '家族' mean?",options:["friend","teacher","family","colleague"],answer:2,explanation:"家族 (kazoku) means 'family'."}
+    ]
+  },
+  n4:{kanji:[],grammar:[],vocabulary:[]},
+  n3:{kanji:[],grammar:[],vocabulary:[]}
+};
+
+// ═══════════════════════════════════════════════════════
+// KAME-KUN SPRITE
+// ═══════════════════════════════════════════════════════
+const KC={
+  SD:'#2d6a2d',SM:'#3d8b3d',SL:'#5aad5a',SS:'#1a4a1a',
+  SK:'#a8d060',SKD:'#7aaa30',EW:'#f0f0e8',EL:'#b8d8f8',EP:'#1a2840',
+  FR:'#222222',BW:'#f5f5f0',BR:'#d42020'
+};
+function drawKame(ctx,cx,cy,scale=2,frame=0){
+  ctx.save();ctx.translate(cx,cy);ctx.scale(scale,scale);
+  const lo=(frame===1)?-2:(frame===2)?2:0;
+  const bo=(frame===1||frame===2)?-1:0;
+  const ti=(frame===3)?0.15:(frame===4)?-0.1:0;
+  ctx.rotate(ti);ctx.translate(0,bo);
+  _kLegs(ctx,lo);_kShell(ctx);_kHead(ctx);_kBand(ctx);_kGlasses(ctx);
+  ctx.restore();
+}
+function _kLegs(ctx,off){
+  const legs=[{x:-10,y:8+off,w:6,h:5},{x:5,y:8-off,w:6,h:5},{x:-9,y:12-off,w:5,h:4},{x:5,y:12+off,w:5,h:4}];
+  for(const l of legs){
+    ctx.fillStyle=KC.SKD;_rr(ctx,l.x,l.y,l.w,l.h,2);ctx.fill();
+    ctx.fillStyle=KC.SK;_rr(ctx,l.x+1,l.y+1,l.w-2,l.h-2,1);ctx.fill();
+  }
+  ctx.fillStyle=KC.SKD;_rr(ctx,8,8,4,3,1);ctx.fill();
+}
+function _kShell(ctx){
+  ctx.fillStyle=KC.SD;_ell(ctx,0,4,13,10);ctx.fill();
+  ctx.fillStyle=KC.SM;_ell(ctx,0,3,11,9);ctx.fill();
+  ctx.strokeStyle=KC.SS;ctx.lineWidth=0.8;
+  for(const [x,y,r] of [[0,2,4],[-6,2,3],[6,2,3],[-3,6,3],[3,6,3]]){
+    ctx.beginPath();
+    for(let i=0;i<6;i++){const a=Math.PI/3*i-Math.PI/6;i===0?ctx.moveTo(x+r*Math.cos(a),y+r*Math.sin(a)):ctx.lineTo(x+r*Math.cos(a),y+r*Math.sin(a));}
+    ctx.closePath();ctx.stroke();
+  }
+  ctx.fillStyle=KC.SL;_ell(ctx,-3,0,4,3);ctx.fill();
+}
+function _kHead(ctx){
+  ctx.fillStyle=KC.SKD;_rr(ctx,-4,-6,8,6,2);ctx.fill();
+  ctx.fillStyle=KC.SK;_ell(ctx,0,-12,8,7);ctx.fill();
+  ctx.fillStyle='rgba(220,100,100,0.35)';_ell(ctx,-5,-10,3,2);ctx.fill();_ell(ctx,5,-10,3,2);ctx.fill();
+}
+function _kBand(ctx){
+  ctx.fillStyle=KC.BW;ctx.fillRect(-8,-17,16,4);
+  ctx.fillStyle=KC.BR;_ell(ctx,0,-15,3,2.5);ctx.fill();
+  ctx.fillStyle=KC.BW;ctx.beginPath();ctx.moveTo(8,-17);ctx.lineTo(13,-19);ctx.lineTo(14,-16);ctx.lineTo(9,-13);ctx.closePath();ctx.fill();
+}
+function _kGlasses(ctx){
+  for(const [lx,ly] of [[-5,-13],[3,-13]]){
+    ctx.fillStyle=KC.EW;_ell(ctx,lx,ly,3.5,3);ctx.fill();
+    ctx.fillStyle=KC.EL;_ell(ctx,lx,ly,2.8,2.3);ctx.fill();
+    ctx.fillStyle=KC.EP;_ell(ctx,lx+.5,ly+.3,1.3,1.4);ctx.fill();
+    ctx.fillStyle='#fff';_ell(ctx,lx+1.2,ly-.5,.6,.6);ctx.fill();
+  }
+  ctx.strokeStyle=KC.FR;ctx.lineWidth=0.9;
+  for(const [lx,ly] of [[-5,-13],[3,-13]]){ctx.beginPath();ctx.ellipse(lx,ly,3.5,3,0,0,Math.PI*2);ctx.stroke();}
+  ctx.beginPath();ctx.moveTo(-1.5,-13);ctx.lineTo(1.5,-13);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-8.5,-13);ctx.lineTo(-10,-14);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(6.5,-13);ctx.lineTo(8,-14);ctx.stroke();
+}
+function _ell(ctx,x,y,rx,ry){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.closePath();}
+function _rr(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+class KameSprite{
+  constructor(){this.frame=0;this.tick=0;this.frameRate=8;this.state='idle';this.stateTimer=0;}
+  update(){
+    this.tick++;
+    if(this.tick>=this.frameRate){
+      this.tick=0;
+      if(this.state==='run')this.frame=this.frame===1?2:1;
+      else if(this.state==='celebrate')this.frame=this.frame===4?0:4;
+    }
+    if(this.stateTimer>0){this.stateTimer--;if(this.stateTimer===0)this.setState('run');}
+  }
+  setState(s,d=0){this.state=s;this.stateTimer=d;
+    if(s==='hurt')this.frame=3;else if(s==='celebrate')this.frame=4;
+    else if(s==='idle')this.frame=0;else if(s==='run')this.frame=1;
+  }
+  draw(ctx,cx,cy,scale=2){drawKame(ctx,cx,cy,scale,this.frame);}
+}
+
+// ═══════════════════════════════════════════════════════
+// GAME ENGINE
+// ═══════════════════════════════════════════════════════
+const Game=(()=>{
+  const state={level:'n5',questions:null,scores:{},currentScreen:null};
+  function loadLevel(level){
+    if(state.questions&&state.level===level)return Promise.resolve(state.questions);
+    const data=KAME_DATA[level]||{kanji:[],grammar:[],vocabulary:[]};
+    state.level=level;state.questions=data;
+    return Promise.resolve(data);
+  }
+  function getScore(mode){const k=`${mode}-${state.level}`;return state.scores[k]||(parseInt(localStorage.getItem('kame-score-'+k))||0);}
+  function setScore(mode,score){const k=`${mode}-${state.level}`;const b=getScore(mode);if(score>b){state.scores[k]=score;localStorage.setItem('kame-score-'+k,score);}}
+  const screens={};
+  function registerScreen(name,{mount,unmount}){screens[name]={mount,unmount:unmount||(()=>{})};}
+  function showScreen(name,opts={}){
+    const el=document.getElementById('app');
+    if(state.currentScreen&&screens[state.currentScreen])screens[state.currentScreen].unmount(el);
+    el.innerHTML='';state.currentScreen=name;
+    if(screens[name])screens[name].mount(el,opts);else el.textContent=`Screen "${name}" not found.`;
+  }
+  function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function sampleN(arr,n){return shuffle(arr).slice(0,n);}
+  async function init(){await loadLevel('n5');showScreen('menu');}
+  return{state,loadLevel,getScore,setScore,showScreen,registerScreen,shuffle,sampleN,init};
+})();
+
+// ═══════════════════════════════════════════════════════
+// MENU
+// ═══════════════════════════════════════════════════════
+Game.registerScreen('menu',{
+  mount(el){
+    el.innerHTML=`<div class="menu-wrap">
+      <canvas id="menu-kame" width="160" height="120"></canvas>
+      <h1 class="logo">亀道場</h1>
+      <p class="logo-sub">Kame Dojo</p>
+      <div class="level-picker">
+        <button class="lvl-btn ${Game.state.level==='n5'?'active':''}" data-lvl="n5">N5</button>
+        <button class="lvl-btn ${Game.state.level==='n4'?'active':''}" data-lvl="n4">N4</button>
+        <button class="lvl-btn ${Game.state.level==='n3'?'active':''}" data-lvl="n3">N3</button>
+      </div>
+      <div class="mode-cards">
+        <button class="mode-card" data-mode="dash"><span class="mode-icon">🐢</span><span class="mode-name">Shell Dash</span><span class="mode-desc">Kanji Runner</span><span class="mode-score">Best: <b id="score-dash">${Game.getScore('dash')}</b></span></button>
+        <button class="mode-card" data-mode="dojo"><span class="mode-icon">⚔️</span><span class="mode-name">Dojo Battle</span><span class="mode-desc">Grammar RPG</span><span class="mode-score">Best: <b id="score-dojo">${Game.getScore('dojo')}</b></span></button>
+        <button class="mode-card" data-mode="garden"><span class="mode-icon">🌱</span><span class="mode-name">Manabi Garden</span><span class="mode-desc">Vocabulary</span><span class="mode-score">Plants: <b id="score-garden">${_gardenCount()}</b></span></button>
+      </div>
+    </div>`;
+    const canvas=document.getElementById('menu-kame'),ctx=canvas.getContext('2d');
+    const sprite=new KameSprite();sprite.setState('run');
+    let raf;
+    (function loop(){ctx.clearRect(0,0,canvas.width,canvas.height);sprite.update();sprite.draw(ctx,80,70,3.5);raf=requestAnimationFrame(loop);})();
+    el._stopKame=()=>cancelAnimationFrame(raf);
+    el.querySelectorAll('.lvl-btn').forEach(btn=>btn.addEventListener('click',async()=>{
+      await Game.loadLevel(btn.dataset.lvl);
+      el.querySelectorAll('.lvl-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+      document.getElementById('score-dash').textContent=Game.getScore('dash');
+      document.getElementById('score-dojo').textContent=Game.getScore('dojo');
+      document.getElementById('score-garden').textContent=_gardenCount();
+    }));
+    el.querySelectorAll('.mode-card').forEach(card=>card.addEventListener('click',()=>Game.showScreen(card.dataset.mode)));
+  },
+  unmount(el){if(el&&el._stopKame)el._stopKame();}
+});
+function _gardenCount(){try{return Object.keys(JSON.parse(localStorage.getItem('kame-garden-'+Game.state.level)||'{}')).length;}catch{return 0;}}
+
+// ═══════════════════════════════════════════════════════
+// SHELL DASH
+// ═══════════════════════════════════════════════════════
+Game.registerScreen('dash',{
+  mount(el){
+    const questions=Game.sampleN(Game.state.questions.kanji,Math.min(20,Game.state.questions.kanji.length));
+    if(!questions.length){
+      el.innerHTML=`<div class="center-msg"><p>No kanji questions for ${Game.state.level.toUpperCase()} yet!</p><button class="btn-primary" onclick="Game.showScreen('menu')">Back</button></div>`;return;
+    }
+    el.innerHTML=`<div class="dash-wrap">
+      <div class="hud">
+        <button class="btn-back" id="dash-back">← Menu</button>
+        <span class="hud-label">SCORE</span><span class="hud-value" id="dash-score">0</span>
+        <span class="hud-label">Q</span><span class="hud-value" id="dash-q">1/${questions.length}</span>
+        <div class="lives" id="dash-lives">♥♥♥</div>
+      </div>
+      <canvas id="dash-canvas"></canvas>
+      <div class="dash-choices" id="dash-choices"></div>
+      <div class="dash-feedback" id="dash-feedback"></div>
+    </div>`;
+    document.getElementById('dash-back').addEventListener('click',()=>Game.showScreen('menu'));
+    const canvas=document.getElementById('dash-canvas'),ctx=canvas.getContext('2d');
+    function resize(){const wrap=el.querySelector('.dash-wrap');canvas.width=wrap.clientWidth;canvas.height=220;}
+    resize();
+    const _ro=()=>resize();window.addEventListener('resize',_ro);el._resizeOff=()=>window.removeEventListener('resize',_ro);
+    let score=0,lives=3,qIndex=0,gameActive=true,answered=false,feedbackTimer=0;
+    const KAME_X=80,GROUND_Y=170;
+    const sprite=new KameSprite();sprite.setState('run');
+    const stars=Array.from({length:40},()=>({x:Math.random()*800,y:Math.random()*80,r:Math.random()*1.5+.3}));
+    const mtns=Array.from({length:8},(_,i)=>({x:i*140,h:50+Math.random()*60}));
+    let mtnOff=0,groundOff=0,obstacle=null,obstSpeed=3.5;
+    function spawnObs(){
+      if(!gameActive)return;
+      obstacle={x:canvas.width+20,kanji:questions[qIndex].question};
+      renderChoices(questions[qIndex]);answered=false;
+      document.getElementById('dash-q').textContent=`${qIndex+1}/${questions.length}`;
+    }
+    function renderChoices(q){
+      const div=document.getElementById('dash-choices');div.innerHTML='';
+      q.options.forEach((opt,i)=>{
+        const btn=document.createElement('button');btn.className='choice-btn';btn.textContent=opt;
+        btn.addEventListener('click',()=>onChoice(i));div.appendChild(btn);
+      });
+    }
+    function onChoice(idx){
+      if(!gameActive||answered||!obstacle)return;answered=true;
+      const q=questions[qIndex],ok=idx===q.answer;
+      document.querySelectorAll('.choice-btn').forEach((b,i)=>{b.disabled=true;if(i===q.answer)b.classList.add('correct');else if(i===idx&&!ok)b.classList.add('wrong');});
+      showFB(ok,q.explanation);
+      if(ok){score+=100;document.getElementById('dash-score').textContent=score;sprite.setState('celebrate',30);obstacle=null;feedbackTimer=60;}
+      else{lives=Math.max(0,lives-1);updateLives();sprite.setState('hurt',40);if(lives<=0){feedbackTimer=90;setTimeout(()=>endGame(),1500);gameActive=false;}else{if(obstacle)obstacle.x=canvas.width*.7;feedbackTimer=50;}}
+    }
+    function showFB(ok,text){const fb=document.getElementById('dash-feedback');fb.textContent=(ok?'✓ ':'✗ ')+text;fb.className='dash-feedback '+(ok?'fb-ok':'fb-bad');}
+    function updateLives(){document.getElementById('dash-lives').textContent='♥'.repeat(lives)+'♡'.repeat(3-lives);}
+    function nextQ(){qIndex++;if(qIndex>=questions.length){endGame(true);return;}obstSpeed=Math.min(3.5+qIndex*.15,7);spawnObs();}
+    function endGame(win=false){
+      gameActive=false;obstacle=null;Game.setScore('dash',score);
+      document.getElementById('dash-choices').innerHTML='';
+      const fb=document.getElementById('dash-feedback');fb.className='dash-feedback fb-end';
+      fb.innerHTML=(win?`<b>完璧！ Perfect!</b>`:`<b>ドンマイ！ Don't give up!</b>`)+`<br>Score: ${score}<br><button id="d-again" class="btn-primary">Play Again</button><button id="d-menu" class="btn-secondary">Menu</button>`;
+      document.getElementById('d-again').addEventListener('click',()=>Game.showScreen('dash'));
+      document.getElementById('d-menu').addEventListener('click',()=>Game.showScreen('menu'));
+    }
+    function drawBG(){
+      const w=canvas.width,h=canvas.height;
+      const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#0a1a30');sky.addColorStop(1,'#1a3a5c');
+      ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+      ctx.fillStyle='#fff';for(const s of stars){ctx.beginPath();ctx.arc(((s.x-mtnOff*.1)%w+w)%w,s.y,s.r,0,Math.PI*2);ctx.fill();}
+      ctx.fillStyle='#fffde7';ctx.beginPath();ctx.arc(w-60,35,18,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#1a3a5c';ctx.beginPath();ctx.arc(w-53,30,15,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#0d2240';
+      const mo=(mtnOff%(8*140)+8*140)%(8*140);
+      for(const m of mtns){const mx=((m.x-mo)%(8*140)+8*140)%(8*140)-70;ctx.beginPath();ctx.moveTo(mx,GROUND_Y-10);ctx.lineTo(mx+70,GROUND_Y-10-m.h);ctx.lineTo(mx+140,GROUND_Y-10);ctx.fill();}
+      ctx.fillStyle='#1a4a2a';ctx.fillRect(0,GROUND_Y,w,h-GROUND_Y);
+      ctx.fillStyle='#2a6a3a';ctx.fillRect(0,GROUND_Y,w,6);
+      ctx.fillStyle='#3a8a4a';
+      for(let tx=((groundOff*-1)%40+40)%40;tx<w;tx+=40)ctx.fillRect(tx,GROUND_Y+1,20,4);
+    }
+    function drawObs(){
+      if(!obstacle)return;
+      const x=obstacle.x,y=GROUND_Y-50,close=x<canvas.width*.35;
+      if(close&&Math.floor(Date.now()/150)%2===0)return;
+      ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(x,GROUND_Y+2,22,6,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=close?'#8b2020':'#4a3a8a';_rrb(ctx,x-22,y-10,44,52,6);
+      ctx.fillStyle=close?'#c03030':'#6a5aaa';_rrb(ctx,x-20,y-8,40,48,5);
+      ctx.fillStyle='#ffe066';ctx.font='bold 28px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(obstacle.kanji,x,y+14);
+      if(close){ctx.fillStyle='#ff4444';ctx.font='bold 10px monospace';ctx.fillText('！！',x,y-16);}
+    }
+    function _rrb(ctx,x,y,w,h,r){
+      ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+      ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
+      ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();ctx.fill();
+    }
+    let raf;spawnObs();
+    (function loop(){
+      raf=requestAnimationFrame(loop);
+      mtnOff+=1.2;groundOff+=2.5;
+      if(obstacle&&gameActive&&!answered){
+        obstacle.x-=obstSpeed;
+        if(obstacle.x<KAME_X-30){
+          obstacle=null;answered=true;lives=Math.max(0,lives-1);updateLives();
+          sprite.setState('hurt',40);showFB(false,'Too slow! '+questions[qIndex].explanation);feedbackTimer=60;
+          if(lives<=0){setTimeout(()=>endGame(),1200);gameActive=false;}
+        }
+      }
+      if(feedbackTimer>0){feedbackTimer--;if(feedbackTimer===0&&gameActive){document.getElementById('dash-feedback').textContent='';document.getElementById('dash-feedback').className='dash-feedback';nextQ();}}
+      sprite.update();
+      ctx.clearRect(0,0,canvas.width,canvas.height);drawBG();sprite.draw(ctx,KAME_X,GROUND_Y,2.5);drawObs();
+    })();
+    el._raf=raf;el._loopRef=()=>cancelAnimationFrame(raf);
+  },
+  unmount(el){if(el&&el._loopRef)el._loopRef();if(el&&el._resizeOff)el._resizeOff();}
+});
+
+// ═══════════════════════════════════════════════════════
+// DOJO BATTLE
+// ═══════════════════════════════════════════════════════
+const SENSEI_LIST=[
+  {name:'Tanaka-sensei',color:'#3a6ea5',hp:5,sprite:'🧑‍🏫'},
+  {name:'Yamamoto-san',color:'#a53a6e',hp:7,sprite:'🧙'},
+  {name:'Master Oni',color:'#6e3aa5',hp:10,sprite:'👹'}
+];
+Game.registerScreen('dojo',{
+  mount(el){
+    const questions=Game.sampleN(Game.state.questions.grammar,Math.min(15,Game.state.questions.grammar.length));
+    if(!questions.length){el.innerHTML=`<div class="center-msg"><p>No grammar questions for ${Game.state.level.toUpperCase()} yet!</p><button class="btn-primary" onclick="Game.showScreen('menu')">Back</button></div>`;return;}
+    let score=0,qIndex=0,sensei=0,senseiHp=SENSEI_LIST[0].hp,playerHp=5,maxSHp=SENSEI_LIST[0].hp,busy=false;
+    el.innerHTML=`<div class="dojo-wrap">
+      <button class="btn-back" id="dojo-back">← Menu</button>
+      <div class="battle-scene">
+        <div class="combatant sensei-side">
+          <div class="c-name" id="s-name">${SENSEI_LIST[0].name}</div>
+          <div class="c-sprite" id="s-sprite">${SENSEI_LIST[0].sprite}</div>
+          <div class="hp-bar-wrap"><div class="hp-bar" id="s-hp-bar" style="width:100%;background:${SENSEI_LIST[0].color}"></div></div>
+          <div class="hp-num" id="s-hp-num">HP ${senseiHp}/${maxSHp}</div>
+        </div>
+        <div class="vs-label">VS</div>
+        <div class="combatant kame-side">
+          <div class="c-name">Kame-kun</div>
+          <canvas id="dojo-kame" width="90" height="90"></canvas>
+          <div class="hp-bar-wrap"><div class="hp-bar" id="p-hp-bar" style="width:100%;background:#2a8a5a"></div></div>
+          <div class="hp-num" id="p-hp-num">HP 5/5</div>
+        </div>
+      </div>
+      <div class="battle-log" id="battle-log">⚔️ Battle start! Answer to attack!</div>
+      <div class="question-box" id="question-box"></div>
+      <div class="dojo-choices" id="dojo-choices"></div>
+      <div class="score-row">Score: <b id="dojo-score">0</b></div>
+    </div>`;
+    document.getElementById('dojo-back').addEventListener('click',()=>Game.showScreen('menu'));
+    const kc=document.getElementById('dojo-kame'),kctx=kc.getContext('2d');
+    const sprite=new KameSprite();sprite.setState('idle');let raf;
+    (function kLoop(){kctx.clearRect(0,0,kc.width,kc.height);sprite.update();sprite.draw(kctx,45,60,2.2);raf=requestAnimationFrame(kLoop);})();
+    el._stopKame=()=>cancelAnimationFrame(raf);
+    function ubars(){
+      document.getElementById('s-hp-bar').style.width=Math.max(0,senseiHp/maxSHp*100)+'%';
+      document.getElementById('p-hp-bar').style.width=Math.max(0,playerHp/5*100)+'%';
+      document.getElementById('s-hp-num').textContent=`HP ${Math.max(0,senseiHp)}/${maxSHp}`;
+      document.getElementById('p-hp-num').textContent=`HP ${Math.max(0,playerHp)}/5`;
+    }
+    function log(msg){document.getElementById('battle-log').innerHTML=msg;}
+    function renderQ(){
+      if(qIndex>=questions.length){endBattle('win');return;}
+      const q=questions[qIndex];
+      const qbox=document.getElementById('question-box');qbox.innerHTML='';
+      if(q.type==='reorder'){
+        const shuffled=Game.shuffle([...q.words]);
+        qbox.innerHTML=`<p class="q-text">Arrange in correct order:</p>
+          <div class="reorder-words" id="rw">${shuffled.map(w=>`<span class="word-chip" data-word="${w}">${w}</span>`).join('')}</div>
+          <div class="reorder-answer" id="ra"><em>Click words to build answer…</em></div>
+          <button class="btn-primary" id="rs" style="margin-top:8px">Submit</button>`;
+        const rw=document.getElementById('rw'),ra=document.getElementById('ra');let sel=[];
+        rw.querySelectorAll('.word-chip').forEach(chip=>{
+          chip.addEventListener('click',()=>{
+            if(busy)return;chip.style.visibility='hidden';sel.push(chip.dataset.word);
+            const p=document.createElement('span');p.className='word-chip placed';p.textContent=chip.dataset.word;
+            p.addEventListener('click',()=>{if(busy)return;sel=sel.filter(w=>w!==chip.dataset.word);chip.style.visibility='visible';p.remove();});
+            if(ra.querySelector('em'))ra.innerHTML='';ra.appendChild(p);
+          });
+        });
+        document.getElementById('rs').addEventListener('click',()=>{if(busy)return;processAns(sel.join('')===q.words.join(''),q);});
+      } else {
+        qbox.innerHTML=`<p class="q-text">${q.question}</p>`;
+        const cd=document.getElementById('dojo-choices');cd.innerHTML='';
+        q.options.forEach((opt,i)=>{
+          const btn=document.createElement('button');btn.className='choice-btn';btn.textContent=opt;
+          btn.addEventListener('click',()=>{if(busy)return;processAns(i===q.answer,q,i);});cd.appendChild(btn);
+        });
+      }
+    }
+    function processAns(correct,q,chosenIdx=-1){
+      busy=true;
+      document.querySelectorAll('#dojo-choices .choice-btn').forEach((b,i)=>{b.disabled=true;if(i===q.answer)b.classList.add('correct');else if(i===chosenIdx)b.classList.add('wrong');});
+      if(correct){
+        senseiHp--;score+=150;document.getElementById('dojo-score').textContent=score;
+        sprite.setState('celebrate',30);log(`⚔️ Hit! ${SENSEI_LIST[sensei].name} takes damage! HP: ${senseiHp}`);ubars();
+        if(senseiHp<=0){
+          sensei++;if(sensei>=SENSEI_LIST.length){setTimeout(()=>endBattle('win'),1200);return;}
+          setTimeout(()=>{
+            maxSHp=SENSEI_LIST[sensei].hp;senseiHp=maxSHp;
+            document.getElementById('s-name').textContent=SENSEI_LIST[sensei].name;
+            document.getElementById('s-sprite').textContent=SENSEI_LIST[sensei].sprite;
+            document.getElementById('s-hp-bar').style.background=SENSEI_LIST[sensei].color;
+            ubars();log(`⚡ New challenger: ${SENSEI_LIST[sensei].name}!`);qIndex++;
+            document.getElementById('dojo-choices').innerHTML='';renderQ();busy=false;
+          },1000);return;
+        }
+      } else {
+        playerHp--;sprite.setState('hurt',40);log(`💥 Wrong! ${SENSEI_LIST[sensei].name} attacks! ${q.explanation}`);ubars();
+        if(playerHp<=0){setTimeout(()=>endBattle('lose'),1200);return;}
+      }
+      setTimeout(()=>{qIndex++;document.getElementById('dojo-choices').innerHTML='';renderQ();busy=false;},1200);
+    }
+    function endBattle(result){
+      cancelAnimationFrame(raf);Game.setScore('dojo',score);
+      document.getElementById('question-box').innerHTML='';document.getElementById('dojo-choices').innerHTML='';
+      log(result==='win'?`🏆 Victory! Score: ${score}`:`😵 Defeated! Score: ${score}`);
+      const btns=document.createElement('div');btns.className='end-btns';
+      btns.innerHTML=`<button class="btn-primary" id="d-again">Play Again</button><button class="btn-secondary" id="d-menu">Menu</button>`;
+      document.getElementById('battle-log').after(btns);
+      document.getElementById('d-again').addEventListener('click',()=>Game.showScreen('dojo'));
+      document.getElementById('d-menu').addEventListener('click',()=>Game.showScreen('menu'));
+    }
+    renderQ();
+  },
+  unmount(el){if(el&&el._stopKame)el._stopKame();}
+});
+
+// ═══════════════════════════════════════════════════════
+// MANABI GARDEN
+// ═══════════════════════════════════════════════════════
+const PLANT_STAGES=['🌱','🌿','🌸','🌳'];
+const PLANT_NAMES=['seed','sprout','flower','tree'];
+Game.registerScreen('garden',{
+  mount(el){
+    const questions=[...Game.state.questions.vocabulary];
+    if(!questions.length){el.innerHTML=`<div class="center-msg"><p>No vocab questions for ${Game.state.level.toUpperCase()} yet!</p><button class="btn-primary" onclick="Game.showScreen('menu')">Back</button></div>`;return;}
+    const sk='kame-garden-'+Game.state.level;
+    const loadG=()=>{try{return JSON.parse(localStorage.getItem(sk)||'{}')}catch{return{}}};
+    const saveG=(g)=>localStorage.setItem(sk,JSON.stringify(g));
+    let garden=loadG(),score=0,answered=false;
+    let queue=Game.shuffle([...questions].filter(q=>(garden[q.id]||0)<3)).concat(Game.shuffle([...questions].filter(q=>(garden[q.id]||0)>=3)));
+    let qi=0;
+    el.innerHTML=`<div class="garden-wrap">
+      <div class="garden-hud">
+        <button class="btn-back" id="garden-back">← Menu</button>
+        <span class="hud-label">🌸 Garden</span>
+        <span class="hud-value" id="garden-score">0</span>
+        <span class="hud-label">${Game.state.level.toUpperCase()}</span>
+      </div>
+      <div class="garden-plot" id="garden-plot"></div>
+      <div class="garden-question-area">
+        <div class="garden-card" id="garden-card">
+          <div id="garden-q"></div>
+          <div class="garden-choices" id="garden-choices"></div>
+          <div class="garden-feedback" id="garden-fb"></div>
+        </div>
+      </div>
+      <div class="garden-progress" id="garden-progress"></div>
+    </div>`;
+    document.getElementById('garden-back').addEventListener('click',()=>Game.showScreen('menu'));
+    function renderGarden(){
+      const plot=document.getElementById('garden-plot');plot.innerHTML='';
+      const complete=questions.filter(q=>(garden[q.id]||0)>=3).length;
+      questions.forEach(q=>{
+        const stage=garden[q.id]||0;
+        const cell=document.createElement('div');cell.className=`plant-cell stage-${stage}`;cell.title=q.options[q.answer];
+        const pc=document.createElement('canvas');pc.width=40;pc.height=48;
+        drawPlant(pc.getContext('2d'),stage);cell.appendChild(pc);
+        const lbl=document.createElement('div');lbl.className='plant-label';lbl.textContent=PLANT_NAMES[stage];cell.appendChild(lbl);
+        plot.appendChild(cell);
+      });
+      document.getElementById('garden-progress').textContent=`${complete} / ${questions.length} plants fully grown 🌳`;
+    }
+    function drawPlant(ctx,stage){
+      ctx.clearRect(0,0,40,48);
+      ctx.fillStyle='#7a4830';ctx.fillRect(10,40,20,8);ctx.fillStyle='#5a3820';ctx.fillRect(8,38,24,4);
+      if(stage===0){ctx.fillStyle='#8a6a20';ctx.beginPath();ctx.ellipse(20,38,5,3,0,0,Math.PI*2);ctx.fill();return;}
+      if(stage>=1){
+        ctx.fillStyle='#3a8a2a';ctx.fillRect(18,20,4,18);
+        ctx.fillStyle='#2a7a1a';ctx.beginPath();ctx.ellipse(13,30,6,4,-0.4,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.ellipse(27,27,6,4,0.4,0,Math.PI*2);ctx.fill();
+      }
+      if(stage>=2){
+        for(let i=0;i<6;i++){const a=Math.PI/3*i;ctx.fillStyle=i%2?'#ff8ab8':'#e85a8a';ctx.beginPath();ctx.ellipse(20+Math.cos(a)*6,16+Math.sin(a)*6,4,3,a,0,Math.PI*2);ctx.fill();}
+        ctx.fillStyle='#ffe066';ctx.beginPath();ctx.arc(20,16,4,0,Math.PI*2);ctx.fill();
+      }
+      if(stage>=3){
+        ctx.fillStyle='#6a3a10';ctx.fillRect(16,22,8,16);ctx.fillStyle='#8a5a30';ctx.fillRect(17,23,4,14);
+        ctx.fillStyle='#1a6a1a';ctx.beginPath();ctx.ellipse(20,18,14,10,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#2a9a2a';ctx.beginPath();ctx.ellipse(20,14,10,8,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#6ada4a';ctx.beginPath();ctx.ellipse(20,10,6,5,0,0,Math.PI*2);ctx.fill();
+      }
+    }
+    function renderQ(){
+      if(qi>=queue.length){queue=Game.shuffle([...questions].filter(q=>(garden[q.id]||0)<3)).concat(Game.shuffle([...questions].filter(q=>(garden[q.id]||0)>=3)));qi=0;}
+      const q=queue[qi],stage=garden[q.id]||0;
+      document.getElementById('garden-q').innerHTML=`<div class="plant-stage-hint">${PLANT_STAGES[Math.min(stage,3)]} Stage ${Math.min(stage,3)}/3 — <em>${PLANT_NAMES[Math.min(stage,3)]}</em></div><div class="q-text-main">${q.question}</div>`;
+      document.getElementById('garden-fb').textContent='';document.getElementById('garden-fb').className='garden-feedback';answered=false;
+      const cd=document.getElementById('garden-choices');cd.innerHTML='';
+      q.options.forEach((opt,i)=>{
+        const btn=document.createElement('button');btn.className='choice-btn garden-choice';btn.textContent=opt;
+        btn.addEventListener('click',()=>onChoice(i,q));cd.appendChild(btn);
+      });
+    }
+    function onChoice(idx,q){
+      if(answered)return;answered=true;
+      document.querySelectorAll('.garden-choice').forEach((b,i)=>{b.disabled=true;if(i===q.answer)b.classList.add('correct');else if(i===idx&&idx!==q.answer)b.classList.add('wrong');});
+      const ok=idx===q.answer,fb=document.getElementById('garden-fb');
+      if(ok){
+        score+=50;document.getElementById('garden-score').textContent=score;
+        const prev=garden[q.id]||0,next=Math.min(prev+1,3);garden[q.id]=next;saveG(garden);
+        fb.textContent=next>prev?`✓ ${q.explanation} — Plant grew to ${PLANT_NAMES[next]}! ${PLANT_STAGES[next]}`:`✓ ${q.explanation} — Already a ${PLANT_STAGES[3]}!`;
+        fb.className='garden-feedback fb-ok';renderGarden();
+      } else {
+        fb.textContent=`✗ ${q.explanation}`;fb.className='garden-feedback fb-bad';
+      }
+      setTimeout(()=>{qi++;renderQ();},1600);
+    }
+    renderGarden();renderQ();
+  },
+  unmount(){}
+});
+
+// ═══════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>Game.init());
+</script>
+</body>
+</html>
