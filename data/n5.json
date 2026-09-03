@@ -1,0 +1,359 @@
+{
+  "kanji": [
+    {
+      "id": "n5-k-001",
+      "question": "日",
+      "options": ["にち / ひ", "つき / がつ", "やま / さん", "かわ / かせん"],
+      "answer": 0,
+      "explanation": "日 means 'day' or 'sun'. Read as にち (nichi) or ひ (hi)."
+    },
+    {
+      "id": "n5-k-002",
+      "question": "月",
+      "options": ["にち / ひ", "つき / がつ", "やま / さん", "かわ / かせん"],
+      "answer": 1,
+      "explanation": "月 means 'moon' or 'month'. Read as つき (tsuki) or がつ (gatsu)."
+    },
+    {
+      "id": "n5-k-003",
+      "question": "山",
+      "options": ["にち / ひ", "つき / がつ", "やま / さん", "かわ / かせん"],
+      "answer": 2,
+      "explanation": "山 means 'mountain'. Read as やま (yama) or さん (san)."
+    },
+    {
+      "id": "n5-k-004",
+      "question": "川",
+      "options": ["にち / ひ", "やま / さん", "かわ / かせん", "き / もく"],
+      "answer": 2,
+      "explanation": "川 means 'river'. Read as かわ (kawa) or かせん (kasen)."
+    },
+    {
+      "id": "n5-k-005",
+      "question": "木",
+      "options": ["み / じつ", "き / もく", "はな / か", "さかな / ぎょ"],
+      "answer": 1,
+      "explanation": "木 means 'tree' or 'wood'. Read as き (ki) or もく (moku)."
+    },
+    {
+      "id": "n5-k-006",
+      "question": "火",
+      "options": ["き / もく", "ひ / か", "みず / すい", "つち / ど"],
+      "answer": 1,
+      "explanation": "火 means 'fire'. Read as ひ (hi) or か (ka)."
+    },
+    {
+      "id": "n5-k-007",
+      "question": "水",
+      "options": ["ひ / か", "みず / すい", "つち / ど", "かね / きん"],
+      "answer": 1,
+      "explanation": "水 means 'water'. Read as みず (mizu) or すい (sui)."
+    },
+    {
+      "id": "n5-k-008",
+      "question": "土",
+      "options": ["みず / すい", "かね / きん", "つち / ど", "ひ / か"],
+      "answer": 2,
+      "explanation": "土 means 'earth' or 'soil'. Read as つち (tsuchi) or ど (do)."
+    },
+    {
+      "id": "n5-k-009",
+      "question": "金",
+      "options": ["つち / ど", "かね / きん", "はな / か", "め / もく"],
+      "answer": 1,
+      "explanation": "金 means 'gold' or 'money'. Read as かね (kane) or きん (kin)."
+    },
+    {
+      "id": "n5-k-010",
+      "question": "人",
+      "options": ["ひと / じん", "め / もく", "みち / どう", "て / しゅ"],
+      "answer": 0,
+      "explanation": "人 means 'person'. Read as ひと (hito) or じん (jin)."
+    },
+    {
+      "id": "n5-k-011",
+      "question": "口",
+      "options": ["て / しゅ", "め / もく", "くち / こう", "みみ / じ"],
+      "answer": 2,
+      "explanation": "口 means 'mouth'. Read as くち (kuchi) or こう (kou)."
+    },
+    {
+      "id": "n5-k-012",
+      "question": "目",
+      "options": ["くち / こう", "め / もく", "みみ / じ", "て / しゅ"],
+      "answer": 1,
+      "explanation": "目 means 'eye'. Read as め (me) or もく (moku)."
+    },
+    {
+      "id": "n5-k-013",
+      "question": "耳",
+      "options": ["め / もく", "て / しゅ", "みみ / じ", "くち / こう"],
+      "answer": 2,
+      "explanation": "耳 means 'ear'. Read as みみ (mimi) or じ (ji)."
+    },
+    {
+      "id": "n5-k-014",
+      "question": "手",
+      "options": ["みみ / じ", "て / しゅ", "あし / そく", "き / もく"],
+      "answer": 1,
+      "explanation": "手 means 'hand'. Read as て (te) or しゅ (shu)."
+    },
+    {
+      "id": "n5-k-015",
+      "question": "足",
+      "options": ["て / しゅ", "あし / そく", "くち / こう", "め / もく"],
+      "answer": 1,
+      "explanation": "足 means 'foot' or 'leg'. Read as あし (ashi) or そく (soku)."
+    },
+    {
+      "id": "n5-k-016",
+      "question": "大",
+      "options": ["ちいさい / しょう", "おおきい / だい", "たかい / こう", "ながい / ちょう"],
+      "answer": 1,
+      "explanation": "大 means 'big'. Read as おおきい (ookii) or だい (dai)."
+    },
+    {
+      "id": "n5-k-017",
+      "question": "小",
+      "options": ["ちいさい / しょう", "おおきい / だい", "たかい / こう", "ながい / ちょう"],
+      "answer": 0,
+      "explanation": "小 means 'small'. Read as ちいさい (chiisai) or しょう (shou)."
+    },
+    {
+      "id": "n5-k-018",
+      "question": "上",
+      "options": ["した / か", "うえ / じょう", "なか / ちゅう", "そと / がい"],
+      "answer": 1,
+      "explanation": "上 means 'above' or 'up'. Read as うえ (ue) or じょう (jou)."
+    },
+    {
+      "id": "n5-k-019",
+      "question": "下",
+      "options": ["うえ / じょう", "した / か", "なか / ちゅう", "みぎ / う"],
+      "answer": 1,
+      "explanation": "下 means 'below' or 'down'. Read as した (shita) or か (ka)."
+    },
+    {
+      "id": "n5-k-020",
+      "question": "中",
+      "options": ["した / か", "なか / ちゅう", "うえ / じょう", "そと / がい"],
+      "answer": 1,
+      "explanation": "中 means 'middle' or 'inside'. Read as なか (naka) or ちゅう (chuu)."
+    },
+    {
+      "id": "n5-k-021",
+      "question": "一",
+      "options": ["に / じ", "いち / いつ", "さん / みつ", "よん / し"],
+      "answer": 1,
+      "explanation": "一 means 'one'. Read as いち (ichi) or いつ (itsu)."
+    },
+    {
+      "id": "n5-k-022",
+      "question": "二",
+      "options": ["いち / いつ", "に / じ", "さん / みつ", "よん / し"],
+      "answer": 1,
+      "explanation": "二 means 'two'. Read as に (ni) or じ (ji)."
+    },
+    {
+      "id": "n5-k-023",
+      "question": "三",
+      "options": ["に / じ", "さん / みつ", "よん / し", "ご / いつ"],
+      "answer": 1,
+      "explanation": "三 means 'three'. Read as さん (san) or みつ (mitsu)."
+    },
+    {
+      "id": "n5-k-024",
+      "question": "四",
+      "options": ["さん / みつ", "よん / し", "ご / いつ", "ろく / りく"],
+      "answer": 1,
+      "explanation": "四 means 'four'. Read as よん (yon) or し (shi)."
+    },
+    {
+      "id": "n5-k-025",
+      "question": "五",
+      "options": ["よん / し", "ご / いつ", "ろく / りく", "なな / しち"],
+      "answer": 1,
+      "explanation": "五 means 'five'. Read as ご (go) or いつ (itsu)."
+    }
+  ],
+  "grammar": [
+    {
+      "id": "n5-g-001",
+      "question": "私___学生です。(I am a student.)",
+      "options": ["が", "は", "を", "に"],
+      "answer": 1,
+      "explanation": "は (wa) is the topic marker particle. 私は (watashi wa) = 'As for me / I am'"
+    },
+    {
+      "id": "n5-g-002",
+      "question": "本___読みます。(I read a book.)",
+      "options": ["は", "が", "を", "で"],
+      "answer": 2,
+      "explanation": "を (wo) marks the direct object. 本を読む = 'read a book'"
+    },
+    {
+      "id": "n5-g-003",
+      "question": "学校___行きます。(I go to school.)",
+      "options": ["を", "は", "に", "が"],
+      "answer": 2,
+      "explanation": "に (ni) marks direction/destination. 学校に行く = 'go to school'"
+    },
+    {
+      "id": "n5-g-004",
+      "question": "図書館___勉強します。(I study at the library.)",
+      "options": ["に", "で", "を", "が"],
+      "answer": 1,
+      "explanation": "で (de) marks location of action. 図書館で = 'at the library'"
+    },
+    {
+      "id": "n5-g-005",
+      "question": "これ___私のかばんです。(This is my bag.)",
+      "options": ["は", "が", "を", "で"],
+      "answer": 0,
+      "explanation": "は (wa) is the topic marker. これは = 'This (topic)'"
+    },
+    {
+      "id": "n5-g-006",
+      "question": "毎日、朝ごはん___食べます。(I eat breakfast every day.)",
+      "options": ["に", "で", "を", "は"],
+      "answer": 2,
+      "explanation": "を marks the direct object. 朝ごはんを食べる = 'eat breakfast'"
+    },
+    {
+      "id": "n5-g-007",
+      "question": "友達___手紙を書きます。(I write a letter to a friend.)",
+      "options": ["で", "に", "を", "が"],
+      "answer": 1,
+      "explanation": "に marks indirect object/recipient. 友達に書く = 'write to a friend'"
+    },
+    {
+      "id": "n5-g-008",
+      "question": "電車___来ます。(I come by train.)",
+      "options": ["に", "で", "を", "は"],
+      "answer": 1,
+      "explanation": "で marks means of transport. 電車で = 'by train'"
+    },
+    {
+      "id": "n5-g-009",
+      "question": "猫___います。(There is a cat.)",
+      "options": ["は", "を", "が", "に"],
+      "answer": 2,
+      "explanation": "が marks the subject with います/あります. 猫が = 'cat (subject)'"
+    },
+    {
+      "id": "n5-g-010",
+      "question": "明日___学校に行きません。(I will not go to school tomorrow.)",
+      "type": "reorder",
+      "words": ["学校に", "明日は", "行きません"],
+      "answer": 1,
+      "explanation": "Correct order: 明日は学校に行きません。Time expressions usually come first."
+    }
+  ],
+  "vocabulary": [
+    {
+      "id": "n5-v-001",
+      "question": "What does 'ありがとう' mean?",
+      "options": ["Goodbye", "Thank you", "Good morning", "Sorry"],
+      "answer": 1,
+      "explanation": "ありがとう (arigatou) means 'Thank you'. ありがとうございます is the polite form."
+    },
+    {
+      "id": "n5-v-002",
+      "question": "What does 'おはようございます' mean?",
+      "options": ["Good evening", "Good night", "Good morning", "Goodbye"],
+      "answer": 2,
+      "explanation": "おはようございます (ohayou gozaimasu) means 'Good morning'."
+    },
+    {
+      "id": "n5-v-003",
+      "question": "What does 'すみません' mean?",
+      "options": ["Thank you", "Excuse me / Sorry", "You're welcome", "Please"],
+      "answer": 1,
+      "explanation": "すみません (sumimasen) means 'Excuse me' or 'I'm sorry'."
+    },
+    {
+      "id": "n5-v-004",
+      "question": "What does '食べる' mean?",
+      "options": ["to drink", "to sleep", "to eat", "to walk"],
+      "answer": 2,
+      "explanation": "食べる (taberu) means 'to eat'."
+    },
+    {
+      "id": "n5-v-005",
+      "question": "What does '飲む' mean?",
+      "options": ["to eat", "to drink", "to read", "to write"],
+      "answer": 1,
+      "explanation": "飲む (nomu) means 'to drink'."
+    },
+    {
+      "id": "n5-v-006",
+      "question": "What does '見る' mean?",
+      "options": ["to hear", "to speak", "to see / watch", "to think"],
+      "answer": 2,
+      "explanation": "見る (miru) means 'to see' or 'to watch'."
+    },
+    {
+      "id": "n5-v-007",
+      "question": "What does '聞く' mean?",
+      "options": ["to see", "to listen / ask", "to speak", "to read"],
+      "answer": 1,
+      "explanation": "聞く (kiku) means 'to listen' or 'to ask'."
+    },
+    {
+      "id": "n5-v-008",
+      "question": "What does '話す' mean?",
+      "options": ["to write", "to read", "to speak", "to walk"],
+      "answer": 2,
+      "explanation": "話す (hanasu) means 'to speak'."
+    },
+    {
+      "id": "n5-v-009",
+      "question": "What does '読む' mean?",
+      "options": ["to write", "to read", "to speak", "to think"],
+      "answer": 1,
+      "explanation": "読む (yomu) means 'to read'."
+    },
+    {
+      "id": "n5-v-010",
+      "question": "What does '書く' mean?",
+      "options": ["to read", "to speak", "to write", "to draw"],
+      "answer": 2,
+      "explanation": "書く (kaku) means 'to write'."
+    },
+    {
+      "id": "n5-v-011",
+      "question": "What does 'かわいい' mean?",
+      "options": ["scary", "cute", "beautiful", "interesting"],
+      "answer": 1,
+      "explanation": "かわいい (kawaii) means 'cute'."
+    },
+    {
+      "id": "n5-v-012",
+      "question": "What does 'おいしい' mean?",
+      "options": ["delicious", "hot (temperature)", "cold", "sweet"],
+      "answer": 0,
+      "explanation": "おいしい (oishii) means 'delicious'."
+    },
+    {
+      "id": "n5-v-013",
+      "question": "What does '学校' mean?",
+      "options": ["hospital", "station", "school", "library"],
+      "answer": 2,
+      "explanation": "学校 (gakkou) means 'school'."
+    },
+    {
+      "id": "n5-v-014",
+      "question": "What does '先生' mean?",
+      "options": ["student", "teacher", "friend", "family"],
+      "answer": 1,
+      "explanation": "先生 (sensei) means 'teacher'."
+    },
+    {
+      "id": "n5-v-015",
+      "question": "What does '家族' mean?",
+      "options": ["friend", "teacher", "family", "colleague"],
+      "answer": 2,
+      "explanation": "家族 (kazoku) means 'family'."
+    }
+  ]
+}
