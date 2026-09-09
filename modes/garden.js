@@ -20,11 +20,13 @@ Game.registerScreen('garden', {
       localStorage.setItem(storageKey, JSON.stringify(g));
     }
 
-    let garden    = loadGarden();
-    let queueIdx  = 0;
-    let queue     = buildQueue();
-    let score     = 0;
-    let answered  = false;
+    let garden         = loadGarden();
+    let queueIdx       = 0;
+    let queue          = buildQueue();
+    let score          = 0;
+    let sessionCorrect = 0;
+    let sessionTotal   = 0;
+    let answered       = false;
 
     function buildQueue() {
       // Prioritize questions whose plants haven't reached max stage yet
@@ -52,7 +54,14 @@ Game.registerScreen('garden', {
         <div class="garden-progress" id="garden-progress"></div>
       </div>`;
 
-    document.getElementById('garden-back').addEventListener('click', () => Game.showScreen('menu'));
+    document.getElementById('garden-back').addEventListener('click', () => {
+      if (sessionTotal > 0) {
+        Progress.saveSession('garden', Game.state.level, score, sessionCorrect, sessionTotal);
+        Game.showScreen('receipt', { mode: 'garden', level: Game.state.level, score, correct: sessionCorrect, total: sessionTotal, win: true });
+      } else {
+        Game.showScreen('menu');
+      }
+    });
 
     function renderGarden() {
       const plot = document.getElementById('garden-plot');
@@ -165,9 +174,10 @@ Game.registerScreen('garden', {
       const stage = garden[q.id] || 0;
       const stageEmoji = PLANT_STAGES[Math.min(stage, 3)];
 
+      const annotated = Furigana.annotate(q.question, Game.state.level);
       document.getElementById('garden-q').innerHTML =
         `<div class="plant-stage-hint">${stageEmoji} Stage ${Math.min(stage,3)}/3 — <em>${PLANT_NAMES[Math.min(stage,3)]}</em></div>
-         <div class="q-text-main">${q.question}</div>`;
+         <div class="q-text-main">${annotated}</div>`;
 
       document.getElementById('garden-fb').textContent = '';
       document.getElementById('garden-fb').className   = 'garden-feedback';
@@ -196,6 +206,8 @@ Game.registerScreen('garden', {
 
       const correct = idx === q.answer;
       const fb      = document.getElementById('garden-fb');
+      sessionTotal++;
+      if (correct) sessionCorrect++;
 
       if (correct) {
         score += 50;
@@ -214,8 +226,9 @@ Game.registerScreen('garden', {
           fb.className   = 'garden-feedback fb-ok';
         }
       } else {
-        fb.textContent = `✗ ${q.explanation}`;
-        fb.className   = 'garden-feedback fb-bad';
+        Progress.deductXP(10);
+        fb.innerHTML = `✗ ${q.explanation} <span class="xp-deduct">−10 XP</span>`;
+        fb.className = 'garden-feedback fb-bad';
       }
 
       setTimeout(() => {
