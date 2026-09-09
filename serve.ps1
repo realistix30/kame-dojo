@@ -1,4 +1,4 @@
-$root = "C:\Users\andrew.justin.oconer\kame-dojo"
+$root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $port = 7890
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add("http://localhost:$port/")

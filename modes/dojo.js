@@ -14,7 +14,9 @@ Game.registerScreen('dojo', {
       return;
     }
 
-    let score      = 0;
+    let score        = 0;
+    let correctCount = 0;
+    let attempted    = 0;
     let qIndex     = 0;
     let sensei     = 0;
     let senseiHp   = SENSEI_LIST[0].hp;
@@ -86,11 +88,13 @@ Game.registerScreen('dojo', {
       const qbox = document.getElementById('question-box');
       qbox.innerHTML = '';
 
+      const lvl = Game.state.level;
+
       if (q.type === 'reorder') {
         const shuffled = Game.shuffle([...q.words]);
         qbox.innerHTML = `<p class="q-text">Arrange in correct order:</p>
           <div class="reorder-words" id="reorder-area">
-            ${shuffled.map(w => `<span class="word-chip" data-word="${w}">${w}</span>`).join('')}
+            ${shuffled.map(w => `<span class="word-chip" data-word="${w}">${Furigana.annotate(w, lvl)}</span>`).join('')}
           </div>
           <div class="reorder-answer" id="reorder-answer"><em>Click words to build your answer…</em></div>
           <button class="btn-primary" id="reorder-submit" style="margin-top:8px">Submit</button>`;
@@ -126,7 +130,7 @@ Game.registerScreen('dojo', {
           processAnswer(userOrder === correctOrder, q);
         });
       } else {
-        qbox.innerHTML = `<p class="q-text">${q.question}</p>`;
+        qbox.innerHTML = `<p class="q-text">${Furigana.annotate(q.question, lvl)}</p>`;
         const choiceDiv = document.getElementById('dojo-choices');
         choiceDiv.innerHTML = '';
         q.options.forEach((opt, i) => {
@@ -144,6 +148,8 @@ Game.registerScreen('dojo', {
 
     function processAnswer(correct, q, chosenIdx = -1) {
       busy = true;
+      attempted++;
+      if (correct) correctCount++;
 
       // Highlight answers
       document.querySelectorAll('.choice-btn').forEach((b, i) => {
@@ -181,9 +187,10 @@ Game.registerScreen('dojo', {
           return;
         }
       } else {
+        Progress.deductXP(10);
         playerHp--;
         sprite.setState('hurt', 40);
-        log(`💥 Wrong! ${SENSEI_LIST[sensei].name} attacks! ${q.explanation}`);
+        log(`💥 Wrong! ${SENSEI_LIST[sensei].name} attacks! ${q.explanation} <span class="xp-deduct">−10 XP</span>`);
         updateBars();
         if (playerHp <= 0) {
           setTimeout(() => endBattle('lose'), 1200);
@@ -200,22 +207,9 @@ Game.registerScreen('dojo', {
     }
 
     function endBattle(result) {
-      cancelAnimationFrame(raf);
       Game.setScore('dojo', score);
-      const qbox = document.getElementById('question-box');
-      const cbox = document.getElementById('dojo-choices');
-      qbox.innerHTML = '';
-      cbox.innerHTML = '';
-      log(result === 'win'
-        ? `🏆 Victory! You defeated all sensei! Score: ${score}`
-        : `😵 Defeated! Train harder! Score: ${score}`);
-      const btns = document.createElement('div');
-      btns.className = 'end-btns';
-      btns.innerHTML = `<button class="btn-primary" id="d-again">Play Again</button>
-                        <button class="btn-secondary" id="d-menu">Menu</button>`;
-      document.getElementById('battle-log').after(btns);
-      document.getElementById('d-again').addEventListener('click', () => Game.showScreen('dojo'));
-      document.getElementById('d-menu').addEventListener('click',  () => Game.showScreen('menu'));
+      Progress.saveSession('dojo', Game.state.level, score, correctCount, attempted);
+      Game.showScreen('receipt', { mode: 'dojo', level: Game.state.level, score, correct: correctCount, total: attempted, win: result === 'win' });
     }
 
     renderQuestion();

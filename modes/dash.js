@@ -35,6 +35,8 @@ Game.registerScreen('dash', {
 
     // ── Game state ──────────────────────────────────────────────────────────
     let score      = 0;
+    let correct    = 0;
+    let attempted  = 0;
     let lives      = 3;
     let qIndex     = 0;
     let gameActive = true;
@@ -116,15 +118,17 @@ Game.registerScreen('dash', {
       });
 
       showFeedback(ok, q.explanation);
+      attempted++;
 
       if (ok) {
+        correct++;
         score += 100;
         document.getElementById('dash-score').textContent = score;
         sprite.setState('celebrate', 30);
-        // Destroy obstacle
         obstacle = null;
         feedbackTimer = 60;
       } else {
+        Progress.deductXP(10);
         lives = Math.max(0, lives - 1);
         updateLives();
         sprite.setState('hurt', 40);
@@ -133,7 +137,6 @@ Game.registerScreen('dash', {
           setTimeout(() => endGame(), 1500);
           gameActive = false;
         } else {
-          // Obstacle keeps coming but slower to give time
           if (obstacle) obstacle.x = canvas.width * 0.7;
           feedbackTimer = 50;
         }
@@ -142,8 +145,8 @@ Game.registerScreen('dash', {
 
     function showFeedback(ok, text) {
       const fb = document.getElementById('dash-feedback');
-      fb.textContent = ok ? `✓ ${text}` : `✗ ${text}`;
-      fb.className   = 'dash-feedback ' + (ok ? 'fb-ok' : 'fb-bad');
+      fb.innerHTML = ok ? `✓ ${text}` : `✗ ${text} <span class="xp-deduct">−10 XP</span>`;
+      fb.className = 'dash-feedback ' + (ok ? 'fb-ok' : 'fb-bad');
     }
 
     function updateLives() {
@@ -165,18 +168,8 @@ Game.registerScreen('dash', {
       gameActive = false;
       obstacle   = null;
       Game.setScore('dash', score);
-
-      const div = document.getElementById('dash-choices');
-      div.innerHTML = '';
-
-      const fb = document.getElementById('dash-feedback');
-      fb.className = 'dash-feedback fb-end';
-      fb.innerHTML = win
-        ? `<b>完璧！ Perfect!</b><br>Score: ${score}<br><button id="dash-again" class="btn-primary">Play Again</button><button id="dash-menu" class="btn-secondary">Menu</button>`
-        : `<b>ドンマイ！ Don't give up!</b><br>Score: ${score}<br><button id="dash-again" class="btn-primary">Try Again</button><button id="dash-menu" class="btn-secondary">Menu</button>`;
-
-      document.getElementById('dash-again').addEventListener('click', () => Game.showScreen('dash'));
-      document.getElementById('dash-menu').addEventListener('click',  () => Game.showScreen('menu'));
+      Progress.saveSession('dash', Game.state.level, score, correct, attempted);
+      Game.showScreen('receipt', { mode: 'dash', level: Game.state.level, score, correct, total: attempted, win });
     }
 
     // ── Draw ────────────────────────────────────────────────────────────────
@@ -258,10 +251,10 @@ Game.registerScreen('dash', {
 
       // Kanji text
       ctx.fillStyle = '#ffe066';
-      ctx.font = 'bold 28px serif';
+      ctx.font = 'bold 26px serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(obstacle.kanji, x, y + 14);
+      ctx.fillText(obstacle.kanji, x, y + 17);
 
       // Danger label when close
       if (close) {
@@ -307,6 +300,8 @@ Game.registerScreen('dash', {
         if (obstacle.x < KAME_X - 30) {
           obstacle   = null;
           answered   = true;
+          attempted++;
+          Progress.deductXP(10);
           lives      = Math.max(0, lives - 1);
           updateLives();
           sprite.setState('hurt', 40);
