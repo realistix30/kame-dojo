@@ -1,0 +1,6 @@
+level,category,type,question,option0,option1,option2,option3,answer,words,explanation
+n5,grammar,multiple_choice,私___学生です。,は,が,を,に,0,,「は」is the topic marker particle. It marks 私 (I) as the topic of the sentence.
+n5,vocabulary,multiple_choice,「大きい」means:,small,big,old,new,1,,「大きい」(おおきい) means big or large.
+n5,kanji,multiple_choice,What is the reading of 「山」?,かわ,やま,もり,はな,1,,「山」(やま / yama) means mountain.
+n4,grammar,reorder,Arrange into a correct sentence:,,,,,"私は毎日学校に行きます","私は|毎日|学校に|行きます",Correct order: Subject + Time + Destination + Verb.
+n4,vocabulary,multiple_choice,「約束」means:,promise,meeting,rule,custom,0,,「約束」(やくそく) means promise or appointment.

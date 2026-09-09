@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kame Dojo — Admin Portal</title>
+  <link rel="icon" id="kame-favicon">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -35,25 +36,25 @@
       outline: none; transition: border-color .15s; width: 100%;
     }
     .login-card input:focus { border-color: var(--accent); }
-    .login-hint { font-size: 0.72rem; color: var(--dim); line-height: 1.4; }
+    .login-hint  { font-size: 0.72rem; color: var(--dim); line-height: 1.4; }
     .login-error { font-size: 0.82rem; color: var(--red); min-height: 1.2em; text-align: center; }
     .btn-primary {
       background: var(--accent); color: #fff; padding: 10px 22px;
       border-radius: var(--radius); font-size: 1rem; font-weight: 700; width: 100%;
       transition: background .15s;
     }
-    .btn-primary:hover { background: #6aaaff; }
+    .btn-primary:hover    { background: #6aaaff; }
     .btn-primary:disabled { opacity: .5; cursor: default; }
 
     /* ── Admin shell ── */
     #admin-section { display: none; flex-direction: column; min-height: 100vh; }
 
     .admin-header {
-      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-      padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 10;
     }
-    .admin-title { font-size: 1rem; font-weight: 800; color: var(--gold); flex: 1; }
+    .admin-title { font-size: 1rem; font-weight: 800; color: var(--gold); flex: 1; min-width: 160px; }
     .admin-header select, .admin-header input[type=text] {
       background: var(--bg2); border: 1px solid var(--border); border-radius: 6px;
       color: var(--text); font-size: 0.85rem; padding: 6px 10px; font-family: inherit;
@@ -61,33 +62,36 @@
     .admin-header select:focus, .admin-header input[type=text]:focus { outline: none; border-color: var(--accent); }
     .btn-sm {
       background: var(--bg2); border: 1px solid var(--border); color: var(--text);
-      border-radius: 6px; padding: 6px 14px; font-size: 0.82rem; transition: background .15s;
+      border-radius: 6px; padding: 6px 14px; font-size: 0.82rem; transition: background .15s, border-color .15s;
+      white-space: nowrap;
     }
-    .btn-sm:hover { background: var(--panel); border-color: var(--accent); color: var(--accent); }
-    .btn-danger { border-color: var(--red); color: var(--red); }
-    .btn-danger:hover { background: #2a1010; }
-    .btn-success { border-color: var(--green); color: var(--green); }
+    .btn-sm:hover    { background: var(--panel); border-color: var(--accent); color: var(--accent); }
+    .btn-danger      { border-color: var(--red);   color: var(--red); }
+    .btn-danger:hover  { background: #2a1010; }
+    .btn-success     { border-color: var(--green); color: var(--green); }
     .btn-success:hover { background: #0d2a1a; }
+    .btn-accent      { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-accent:hover  { background: #6aaaff; color: #fff; border-color: #6aaaff; }
 
     /* ── Question table ── */
-    .admin-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-    .q-count { font-size: 0.8rem; color: var(--dim); }
-    .q-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .admin-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .q-count    { font-size: 0.8rem; color: var(--dim); }
+    .q-table    { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     .q-table th {
       text-align: left; padding: 8px 12px; font-size: 0.72rem; color: var(--dim);
       text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border);
-      background: var(--bg2); position: sticky; top: 57px;
+      background: var(--bg2); position: sticky; top: 53px;
     }
     .q-table td { padding: 9px 12px; border-bottom: 1px solid #1a2240; vertical-align: middle; }
     .q-table tr:hover td { background: #131d35; }
-    .q-id    { font-family: monospace; font-size: 0.78rem; color: var(--dim); white-space: nowrap; }
-    .q-lvl   { font-size: 0.75rem; font-weight: 700; color: var(--accent); }
-    .q-cat   { font-size: 0.75rem; color: var(--dim); }
-    .q-type  { font-size: 0.72rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
-    .q-text  { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .q-ans   { font-size: 0.78rem; color: var(--green); }
+    .q-id   { font-family: monospace; font-size: 0.78rem; color: var(--dim); white-space: nowrap; }
+    .q-lvl  { font-size: 0.75rem; font-weight: 700; color: var(--accent); }
+    .q-cat  { font-size: 0.75rem; color: var(--dim); }
+    .q-type { font-size: 0.72rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+    .q-text { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .q-ans  { font-size: 0.78rem; color: var(--green); }
 
-    /* ── Edit panel (slide-in) ── */
+    /* ── Edit / Add drawer ── */
     #edit-overlay {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 50;
       align-items: flex-start; justify-content: flex-end;
@@ -103,7 +107,7 @@
       border-bottom: 1px solid var(--border); background: var(--bg2); position: sticky; top: 0;
     }
     .edit-header h2 { font-size: 0.95rem; font-weight: 700; flex: 1; }
-    .edit-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .edit-body  { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
     .field-group { display: flex; flex-direction: column; gap: 5px; }
     .field-group label { font-size: 0.75rem; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
     .field-group input, .field-group select, .field-group textarea {
@@ -117,10 +121,10 @@
     .option-idx {
       width: 22px; height: 22px; border-radius: 50%; background: var(--border);
       color: var(--text); font-size: 0.72rem; font-weight: 700;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;
     }
     .option-idx.correct { background: var(--green); color: #fff; }
-    .option-row input { flex: 1; }
+    .option-row input   { flex: 1; }
     .edit-footer {
       padding: 14px 18px; border-top: 1px solid var(--border);
       display: flex; gap: 10px; background: var(--bg2); position: sticky; bottom: 0;
@@ -128,6 +132,85 @@
     .save-status { font-size: 0.8rem; color: var(--dim); align-self: center; flex: 1; }
     .save-status.ok  { color: var(--green); }
     .save-status.err { color: var(--red); }
+
+    /* ── Import modal ── */
+    #import-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 60;
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    #import-overlay.open { display: flex; }
+    .import-modal {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+      width: min(680px, 100%); max-height: 88vh; overflow-y: auto;
+      display: flex; flex-direction: column;
+    }
+    .import-header {
+      display: flex; align-items: center; gap: 10px; padding: 14px 18px;
+      border-bottom: 1px solid var(--border); background: var(--bg2);
+      position: sticky; top: 0; border-radius: 14px 14px 0 0;
+    }
+    .import-header h2 { font-size: 0.95rem; font-weight: 700; flex: 1; }
+    .import-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+
+    .import-tabs { display: flex; gap: 6px; }
+    .import-tab {
+      flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--bg2); color: var(--dim); font-size: 0.85rem; font-weight: 600;
+      text-align: center; cursor: pointer; transition: all .15s;
+    }
+    .import-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .import-drop {
+      border: 2px dashed var(--border); border-radius: 10px; padding: 24px;
+      text-align: center; color: var(--dim); font-size: 0.9rem; cursor: pointer;
+      transition: border-color .15s, background .15s; position: relative;
+    }
+    .import-drop:hover, .import-drop.drag-over { border-color: var(--accent); background: #111d3a; color: var(--text); }
+    .import-drop input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .import-drop-icon  { font-size: 2rem; margin-bottom: 6px; }
+    .import-drop-label { font-size: 0.85rem; }
+    .import-drop-sub   { font-size: 0.72rem; color: var(--dim); margin-top: 4px; }
+
+    .import-or { text-align: center; font-size: 0.75rem; color: var(--dim); }
+
+    .import-paste textarea {
+      background: var(--bg2); border: 2px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 0.82rem; padding: 10px 12px; font-family: monospace;
+      width: 100%; height: 120px; resize: vertical; outline: none;
+      transition: border-color .15s;
+    }
+    .import-paste textarea:focus { border-color: var(--accent); }
+    .import-paste-label { font-size: 0.75rem; color: var(--dim); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .05em; }
+
+    .import-templates { display: flex; gap: 8px; }
+    .import-templates a {
+      flex: 1; text-align: center; padding: 7px; border: 1px solid var(--border);
+      border-radius: 7px; font-size: 0.78rem; color: var(--dim); text-decoration: none;
+      background: var(--bg2); transition: border-color .15s, color .15s; cursor: pointer;
+    }
+    .import-templates a:hover { border-color: var(--accent); color: var(--accent); }
+
+    .import-preview { display: none; flex-direction: column; gap: 8px; }
+    .import-preview.visible { display: flex; }
+    .import-preview-title { font-size: 0.8rem; font-weight: 700; color: var(--gold); }
+    .import-prev-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .import-prev-table th {
+      text-align: left; padding: 5px 8px; font-size: 0.68rem; color: var(--dim);
+      text-transform: uppercase; border-bottom: 1px solid var(--border);
+    }
+    .import-prev-table td { padding: 5px 8px; border-bottom: 1px solid #1a2240; }
+    .import-prev-more { font-size: 0.72rem; color: var(--dim); text-align: center; padding: 4px; }
+
+    .import-footer {
+      padding: 14px 18px; border-top: 1px solid var(--border); display: flex;
+      gap: 10px; align-items: center; background: var(--bg2);
+      position: sticky; bottom: 0; border-radius: 0 0 14px 14px;
+    }
+    .import-status { flex: 1; font-size: 0.8rem; color: var(--dim); }
+    .import-status.ok  { color: var(--green); }
+    .import-status.err { color: var(--red); }
 
     /* Loading / empty */
     .admin-loading { padding: 40px; text-align: center; color: var(--dim); }
@@ -155,18 +238,15 @@
   </div>
 </div>
 
-<!-- ── Admin ─────────────────────────────────────────────── -->
+<!-- ── Admin shell ─────────────────────────────────────── -->
 <div id="admin-section">
   <div class="admin-header">
     <span class="admin-title">🐢 Kame Dojo — Question Editor</span>
-    <input type="text" id="search-box" placeholder="Search…" style="width:160px">
+    <input type="text" id="search-box" placeholder="Search…" style="width:140px">
     <select id="filter-level">
       <option value="">All Levels</option>
-      <option value="n5">N5</option>
-      <option value="n4">N4</option>
-      <option value="n3">N3</option>
-      <option value="n2">N2</option>
-      <option value="n1">N1</option>
+      <option value="n5">N5</option><option value="n4">N4</option>
+      <option value="n3">N3</option><option value="n2">N2</option><option value="n1">N1</option>
     </select>
     <select id="filter-cat">
       <option value="">All Categories</option>
@@ -174,6 +254,8 @@
       <option value="grammar">Grammar</option>
       <option value="vocabulary">Vocabulary</option>
     </select>
+    <button class="btn-sm btn-accent" id="btn-add">+ Add</button>
+    <button class="btn-sm" id="btn-import">⬆ Import</button>
     <button class="btn-sm btn-danger" id="btn-logout">Logout</button>
   </div>
 
@@ -182,13 +264,8 @@
     <table class="q-table" id="q-table">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Lvl</th>
-          <th>Cat</th>
-          <th>Type</th>
-          <th>Question</th>
-          <th>Answer</th>
-          <th></th>
+          <th>ID</th><th>Lvl</th><th>Cat</th><th>Type</th>
+          <th>Question</th><th>Answer</th><th></th>
         </tr>
       </thead>
       <tbody id="q-tbody"></tbody>
@@ -197,7 +274,7 @@
   </div>
 </div>
 
-<!-- ── Edit drawer ─────────────────────────────────────────── -->
+<!-- ── Edit / Add drawer ─────────────────────────────────── -->
 <div id="edit-overlay">
   <div class="edit-drawer">
     <div class="edit-header">
@@ -205,14 +282,12 @@
       <button class="btn-sm" id="edit-close">✕ Close</button>
     </div>
     <div class="edit-body">
-
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
         <div class="field-group">
           <label>Level</label>
           <select id="e-level">
             <option value="n5">N5</option><option value="n4">N4</option>
-            <option value="n3">N3</option><option value="n2">N2</option>
-            <option value="n1">N1</option>
+            <option value="n3">N3</option><option value="n2">N2</option><option value="n1">N1</option>
           </select>
         </div>
         <div class="field-group">
@@ -239,22 +314,20 @@
 
       <div class="field-group" id="options-section">
         <label>Options &amp; Correct Answer</label>
-        <div class="options-grid" id="options-grid">
-          <!-- rendered dynamically -->
-        </div>
-        <div style="font-size:.75rem;color:var(--dim);margin-top:4px">Click an option label to mark it correct.</div>
+        <div class="options-grid" id="options-grid"></div>
+        <div style="font-size:.75rem;color:var(--dim);margin-top:4px">Click an option circle to mark it correct.</div>
       </div>
 
       <div class="field-group" id="words-section" style="display:none">
         <label>Words (correct order, one per line)</label>
         <textarea id="e-words" rows="4" placeholder="word1&#10;word2&#10;word3"></textarea>
+        <div style="font-size:.75rem;color:var(--dim);margin-top:4px">Answer field will be auto-built from words on save.</div>
       </div>
 
       <div class="field-group">
         <label>Explanation</label>
         <textarea id="e-explanation" rows="3"></textarea>
       </div>
-
     </div>
     <div class="edit-footer">
       <span class="save-status" id="save-status"></span>
@@ -264,23 +337,76 @@
   </div>
 </div>
 
+<!-- ── Import modal ───────────────────────────────────────── -->
+<div id="import-overlay">
+  <div class="import-modal">
+    <div class="import-header">
+      <h2>⬆ Import Questions</h2>
+      <button class="btn-sm" id="import-close">✕ Close</button>
+    </div>
+    <div class="import-body">
+
+      <div class="import-tabs">
+        <button class="import-tab active" data-fmt="json">JSON</button>
+        <button class="import-tab" data-fmt="csv">CSV</button>
+      </div>
+
+      <div class="import-drop" id="import-drop">
+        <input type="file" id="import-file" accept=".json,.csv">
+        <div class="import-drop-icon">📂</div>
+        <div class="import-drop-label">Drop a file here or click to browse</div>
+        <div class="import-drop-sub" id="import-drop-sub">Accepts .json files</div>
+      </div>
+
+      <div class="import-or">— or paste content below —</div>
+
+      <div class="import-paste">
+        <div class="import-paste-label">Paste JSON or CSV content</div>
+        <textarea id="import-text" placeholder="Paste your JSON array or CSV here…"></textarea>
+      </div>
+
+      <div class="import-templates">
+        <a id="tpl-json" title="Download JSON template">⬇ JSON Template</a>
+        <a id="tpl-csv"  title="Download CSV template">⬇ CSV Template</a>
+      </div>
+
+      <div class="import-preview" id="import-preview">
+        <div class="import-preview-title" id="import-preview-title"></div>
+        <table class="import-prev-table">
+          <thead><tr>
+            <th>Level</th><th>Category</th><th>Type</th><th>Question</th><th>Answer</th>
+          </tr></thead>
+          <tbody id="import-prev-tbody"></tbody>
+        </table>
+        <div class="import-prev-more" id="import-prev-more"></div>
+      </div>
+
+    </div>
+    <div class="import-footer">
+      <span class="import-status" id="import-status">Select a file or paste content to preview.</span>
+      <button class="btn-sm" id="import-cancel">Cancel</button>
+      <button class="btn-sm btn-success" id="import-run" disabled>Import</button>
+    </div>
+  </div>
+</div>
+
 <script src="config.js"></script>
+<script src="favicon.js"></script>
 <script>
 'use strict';
 
-// ── Admin password (SHA-256 hash).
-// Default password: "admin"
-// To change: run in browser console:
-//   crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourpassword'))
-//     .then(b => console.log(Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')))
+// SHA-256 of "admin" — change this to change the password (see admin manual)
 const ADMIN_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
 
-let SERVICE_KEY = '';
-let allQuestions = [];
-let editingId    = null;
-let answerIdx    = 0;
+let SERVICE_KEY   = '';
+let allQuestions  = [];
+let editingId     = null;   // null = adding new, string = editing existing
+let isAdding      = false;
+let answerIdx     = 0;
+let importFormat  = 'json';
+let pendingImport = [];     // parsed questions ready to insert
 
-// ── Util ──────────────────────────────────────────────────────────
+// ── Util ──────────────────────────────────────────────────────────────
 async function sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -290,7 +416,7 @@ function api(path, opts = {}) {
   return fetch(SUPABASE_URL + path, {
     ...opts,
     headers: {
-      apikey: SERVICE_KEY,
+      apikey:        SERVICE_KEY,
       Authorization: `Bearer ${SERVICE_KEY}`,
       'Content-Type': 'application/json',
       ...(opts.headers || {}),
@@ -298,7 +424,13 @@ function api(path, opts = {}) {
   });
 }
 
-// ── Login ─────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// ── Login ─────────────────────────────────────────────────────────────
 document.getElementById('login-form').addEventListener('submit', async e => {
   e.preventDefault();
   const errEl = document.getElementById('login-error');
@@ -317,8 +449,6 @@ document.getElementById('login-form').addEventListener('submit', async e => {
       btn.disabled = false; btn.textContent = 'Enter Portal';
       return;
     }
-
-    // Validate service key against Supabase
     const test = await fetch(`${SUPABASE_URL}/rest/v1/questions?limit=1`, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
     });
@@ -327,7 +457,6 @@ document.getElementById('login-form').addEventListener('submit', async e => {
       btn.disabled = false; btn.textContent = 'Enter Portal';
       return;
     }
-
     SERVICE_KEY = key;
     sessionStorage.setItem('admin-skey', key);
     showAdmin();
@@ -338,12 +467,11 @@ document.getElementById('login-form').addEventListener('submit', async e => {
 });
 
 function showAdmin() {
-  document.getElementById('login-section').style.display = 'none';
-  document.getElementById('admin-section').style.display = 'flex';
+  document.getElementById('login-section').style.display  = 'none';
+  document.getElementById('admin-section').style.display  = 'flex';
   loadQuestions();
 }
 
-// Auto-restore session
 window.addEventListener('DOMContentLoaded', () => {
   const saved = sessionStorage.getItem('admin-skey');
   if (saved) { SERVICE_KEY = saved; showAdmin(); }
@@ -352,14 +480,14 @@ window.addEventListener('DOMContentLoaded', () => {
 document.getElementById('btn-logout').addEventListener('click', () => {
   SERVICE_KEY = '';
   sessionStorage.removeItem('admin-skey');
-  document.getElementById('admin-section').style.display = 'none';
-  document.getElementById('login-section').style.display = 'flex';
-  document.getElementById('inp-pass').value = '';
+  document.getElementById('admin-section').style.display  = 'none';
+  document.getElementById('login-section').style.display  = 'flex';
+  document.getElementById('inp-pass').value     = '';
   document.getElementById('login-btn').disabled = false;
   document.getElementById('login-btn').textContent = 'Enter Portal';
 });
 
-// ── Load & render questions ───────────────────────────────────────
+// ── Load & render questions ───────────────────────────────────────────
 async function loadQuestions() {
   document.getElementById('admin-loading').style.display = 'block';
   document.getElementById('q-tbody').innerHTML = '';
@@ -383,7 +511,7 @@ function renderTable() {
   if (level)  rows = rows.filter(q => q.level === level);
   if (cat)    rows = rows.filter(q => q.category === cat);
   if (search) rows = rows.filter(q =>
-    q.id.toLowerCase().includes(search) ||
+    String(q.id).includes(search) ||
     (q.question || '').toLowerCase().includes(search) ||
     (q.explanation || '').toLowerCase().includes(search)
   );
@@ -395,7 +523,7 @@ function renderTable() {
   tbody.innerHTML = '';
   rows.forEach(q => {
     const opts    = Array.isArray(q.options) ? q.options : [];
-    const ansText = opts[q.answer] ?? '—';
+    const ansText = opts[q.answer] ?? q.answer ?? '—';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="q-id">${esc(q.id)}</td>
@@ -413,41 +541,53 @@ function renderTable() {
   });
 }
 
-['filter-level','filter-cat'].forEach(id => {
-  document.getElementById(id).addEventListener('change', renderTable);
-});
+['filter-level','filter-cat'].forEach(id =>
+  document.getElementById(id).addEventListener('change', renderTable)
+);
 document.getElementById('search-box').addEventListener('input', renderTable);
 
-function esc(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
-}
-
-// ── Edit drawer ───────────────────────────────────────────────────
+// ── Edit drawer ───────────────────────────────────────────────────────
 function openEdit(id) {
-  const q = allQuestions.find(x => x.id === id);
+  const q = allQuestions.find(x => String(x.id) === String(id));
   if (!q) return;
   editingId = id;
+  isAdding  = false;
   answerIdx = q.answer ?? 0;
 
-  document.getElementById('edit-title').textContent = `Edit — ${id}`;
-  document.getElementById('e-level').value       = q.level || 'n5';
-  document.getElementById('e-cat').value         = q.category || 'grammar';
-  document.getElementById('e-type').value        = q.type || 'multiple_choice';
-  document.getElementById('e-question').value    = q.question || '';
-  document.getElementById('e-explanation').value = q.explanation || '';
-  document.getElementById('save-status').textContent = '';
-  document.getElementById('save-status').className   = 'save-status';
-
+  document.getElementById('edit-title').textContent     = `Edit — ${id}`;
+  document.getElementById('e-level').value              = q.level    || 'n5';
+  document.getElementById('e-cat').value                = q.category || 'grammar';
+  document.getElementById('e-type').value               = q.type     || 'multiple_choice';
+  document.getElementById('e-question').value           = q.question    || '';
+  document.getElementById('e-explanation').value        = q.explanation || '';
+  document.getElementById('save-status').textContent    = '';
+  document.getElementById('save-status').className      = 'save-status';
+  document.getElementById('edit-save').textContent      = 'Save Changes';
   renderTypeFields(q);
-
   document.getElementById('edit-overlay').classList.add('open');
 }
 
-function renderTypeFields(q) {
-  const type = document.getElementById('e-type').value;
+// ── Add new question ──────────────────────────────────────────────────
+document.getElementById('btn-add').addEventListener('click', () => {
+  editingId = null;
+  isAdding  = true;
+  answerIdx = 0;
 
+  document.getElementById('edit-title').textContent     = 'Add New Question';
+  document.getElementById('e-level').value              = 'n5';
+  document.getElementById('e-cat').value                = 'grammar';
+  document.getElementById('e-type').value               = 'multiple_choice';
+  document.getElementById('e-question').value           = '';
+  document.getElementById('e-explanation').value        = '';
+  document.getElementById('save-status').textContent    = '';
+  document.getElementById('save-status').className      = 'save-status';
+  document.getElementById('edit-save').textContent      = 'Add Question';
+  renderTypeFields(null);
+  document.getElementById('edit-overlay').classList.add('open');
+});
+
+function renderTypeFields(q) {
+  const type     = document.getElementById('e-type').value;
   const optSec   = document.getElementById('options-section');
   const wordsSec = document.getElementById('words-section');
 
@@ -464,14 +604,13 @@ function renderTypeFields(q) {
 }
 
 document.getElementById('e-type').addEventListener('change', () => {
-  const q = allQuestions.find(x => x.id === editingId);
+  const q = editingId ? allQuestions.find(x => String(x.id) === String(editingId)) : null;
   renderTypeFields(q);
 });
 
 function renderOptions(opts) {
   const grid = document.getElementById('options-grid');
   grid.innerHTML = '';
-  // Ensure 4 options
   const four = [...opts];
   while (four.length < 4) four.push('');
 
@@ -482,7 +621,6 @@ function renderOptions(opts) {
     idx.className = 'option-idx' + (i === answerIdx ? ' correct' : '');
     idx.textContent = i;
     idx.title = 'Click to mark correct';
-    idx.style.cursor = 'pointer';
     idx.addEventListener('click', () => {
       answerIdx = i;
       grid.querySelectorAll('.option-idx').forEach((el, j) => {
@@ -490,8 +628,8 @@ function renderOptions(opts) {
       });
     });
     const inp = document.createElement('input');
-    inp.type  = 'text';
-    inp.value = opt;
+    inp.type        = 'text';
+    inp.value       = opt;
     inp.placeholder = `Option ${i}`;
     row.appendChild(idx);
     row.appendChild(inp);
@@ -507,12 +645,14 @@ document.getElementById('edit-overlay').addEventListener('click', e => {
 
 function closeEdit() {
   document.getElementById('edit-overlay').classList.remove('open');
+  document.getElementById('edit-save').textContent = 'Save Changes';
   editingId = null;
+  isAdding  = false;
 }
 
-// ── Save ──────────────────────────────────────────────────────────
+// ── Save (add or edit) ────────────────────────────────────────────────
 document.getElementById('edit-save').addEventListener('click', async () => {
-  if (!editingId) return;
+  if (!isAdding && !editingId) return;
   const btn    = document.getElementById('edit-save');
   const status = document.getElementById('save-status');
   btn.disabled = true;
@@ -526,37 +666,50 @@ document.getElementById('edit-save').addEventListener('click', async () => {
     type,
     question:    document.getElementById('e-question').value.trim(),
     explanation: document.getElementById('e-explanation').value.trim(),
-    answer:      answerIdx,
   };
 
   if (type === 'reorder') {
-    payload.words   = document.getElementById('e-words').value
+    const words     = document.getElementById('e-words').value
                         .split('\n').map(s => s.trim()).filter(Boolean);
+    payload.words   = words;
     payload.options = [];
+    payload.answer  = words.join('');  // assembled answer for reorder
   } else {
     payload.options = Array.from(
       document.getElementById('options-grid').querySelectorAll('.option-row input')
     ).map(inp => inp.value.trim());
+    payload.answer  = answerIdx;
   }
 
   try {
-    const res = await api(
-      `/rest/v1/questions?id=eq.${encodeURIComponent(editingId)}`,
-      { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify(payload) }
-    );
-
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(err);
+    if (isAdding) {
+      const res = await api('/rest/v1/questions', {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const created = await res.json();
+      if (Array.isArray(created) && created[0]) allQuestions.unshift(created[0]);
+      renderTable();
+      status.textContent = '✓ Question added!';
+      status.className   = 'save-status ok';
+      document.getElementById('e-question').value    = '';
+      document.getElementById('e-explanation').value = '';
+      renderOptions(['', '', '', '']);
+      answerIdx = 0;
+    } else {
+      const res = await api(
+        `/rest/v1/questions?id=eq.${encodeURIComponent(editingId)}`,
+        { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify(payload) }
+      );
+      if (!res.ok) throw new Error(await res.text());
+      const idx = allQuestions.findIndex(q => String(q.id) === String(editingId));
+      if (idx !== -1) allQuestions[idx] = { ...allQuestions[idx], ...payload };
+      renderTable();
+      status.textContent = '✓ Saved';
+      status.className   = 'save-status ok';
     }
-
-    // Update local cache
-    const idx = allQuestions.findIndex(q => q.id === editingId);
-    if (idx !== -1) allQuestions[idx] = { ...allQuestions[idx], ...payload };
-    renderTable();
-
-    status.textContent = '✓ Saved';
-    status.className   = 'save-status ok';
   } catch (err) {
     status.textContent = '✗ ' + err.message;
     status.className   = 'save-status err';
@@ -564,6 +717,275 @@ document.getElementById('edit-save').addEventListener('click', async () => {
     btn.disabled = false;
   }
 });
+
+// ── Import modal ──────────────────────────────────────────────────────
+document.getElementById('btn-import').addEventListener('click', openImport);
+document.getElementById('import-close').addEventListener('click',  closeImport);
+document.getElementById('import-cancel').addEventListener('click', closeImport);
+document.getElementById('import-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('import-overlay')) closeImport();
+});
+
+function openImport() {
+  pendingImport = [];
+  document.getElementById('import-text').value     = '';
+  document.getElementById('import-status').textContent = 'Select a file or paste content to preview.';
+  document.getElementById('import-status').className  = 'import-status';
+  document.getElementById('import-run').disabled   = true;
+  document.getElementById('import-preview').classList.remove('visible');
+  document.getElementById('import-overlay').classList.add('open');
+}
+
+function closeImport() {
+  document.getElementById('import-overlay').classList.remove('open');
+  pendingImport = [];
+}
+
+// Tab toggle
+document.querySelectorAll('.import-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.import-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    importFormat = btn.dataset.fmt;
+    document.getElementById('import-drop-sub').textContent =
+      `Accepts .${importFormat} files`;
+    document.getElementById('import-file').accept = `.${importFormat}`;
+    // Re-parse if there's pasted text
+    const txt = document.getElementById('import-text').value.trim();
+    if (txt) parseAndPreview(txt);
+  });
+});
+
+// File drop
+const dropEl = document.getElementById('import-drop');
+const fileEl = document.getElementById('import-file');
+
+dropEl.addEventListener('dragover', e => { e.preventDefault(); dropEl.classList.add('drag-over'); });
+dropEl.addEventListener('dragleave', () => dropEl.classList.remove('drag-over'));
+dropEl.addEventListener('drop', e => {
+  e.preventDefault();
+  dropEl.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) readFile(file);
+});
+
+fileEl.addEventListener('change', () => {
+  if (fileEl.files[0]) readFile(fileEl.files[0]);
+});
+
+function readFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'json') importFormat = 'json';
+  if (ext === 'csv')  importFormat = 'csv';
+  document.querySelectorAll('.import-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.fmt === importFormat);
+  });
+  const reader = new FileReader();
+  reader.onload = e => parseAndPreview(e.target.result);
+  reader.readAsText(file);
+}
+
+// Paste text area — auto-parse on input
+document.getElementById('import-text').addEventListener('input', () => {
+  const txt = document.getElementById('import-text').value.trim();
+  if (txt.length > 10) parseAndPreview(txt);
+  else {
+    pendingImport = [];
+    document.getElementById('import-run').disabled = true;
+    document.getElementById('import-preview').classList.remove('visible');
+    document.getElementById('import-status').textContent = 'Select a file or paste content to preview.';
+    document.getElementById('import-status').className   = 'import-status';
+  }
+});
+
+function parseAndPreview(text) {
+  try {
+    const qs = importFormat === 'csv' ? parseCSV(text) : parseJSON(text);
+    if (!qs.length) throw new Error('No valid questions found.');
+    pendingImport = qs;
+    showPreview(qs);
+    document.getElementById('import-status').textContent = `✓ ${qs.length} question${qs.length !== 1 ? 's' : ''} ready to import.`;
+    document.getElementById('import-status').className   = 'import-status ok';
+    document.getElementById('import-run').disabled       = false;
+    document.getElementById('import-run').textContent    = `Import ${qs.length}`;
+  } catch (err) {
+    pendingImport = [];
+    document.getElementById('import-run').disabled       = true;
+    document.getElementById('import-preview').classList.remove('visible');
+    document.getElementById('import-status').textContent = '✗ ' + err.message;
+    document.getElementById('import-status').className   = 'import-status err';
+  }
+}
+
+function showPreview(qs) {
+  const preview = document.getElementById('import-preview');
+  const tbody   = document.getElementById('import-prev-tbody');
+  const title   = document.getElementById('import-preview-title');
+  const more    = document.getElementById('import-prev-more');
+  const shown   = qs.slice(0, 5);
+
+  title.textContent = `Preview (first ${Math.min(5, qs.length)} of ${qs.length}):`;
+  tbody.innerHTML   = shown.map(q => {
+    const opts    = Array.isArray(q.options) ? q.options : [];
+    const ansText = (typeof q.answer === 'number' ? opts[q.answer] : q.answer) ?? '—';
+    return `<tr>
+      <td>${esc(q.level||'')}</td>
+      <td>${esc(q.category||'')}</td>
+      <td>${esc(q.type||'')}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(q.question||'')}</td>
+      <td>${esc(String(ansText).slice(0,25))}</td>
+    </tr>`;
+  }).join('');
+  more.textContent = qs.length > 5 ? `…and ${qs.length - 5} more` : '';
+  preview.classList.add('visible');
+}
+
+// ── JSON parser ───────────────────────────────────────────────────────
+function parseJSON(text) {
+  const raw = JSON.parse(text);
+  const arr = Array.isArray(raw) ? raw : [raw];
+  return arr.map(normalizeQuestion).filter(q => q.level && q.category && q.question);
+}
+
+// ── CSV parser ────────────────────────────────────────────────────────
+// Expected header: level,category,type,question,option0,option1,option2,option3,answer,words,explanation
+function parseCSV(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const header = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+  return lines.slice(1).map(line => {
+    const cells = parseCSVLine(line);
+    const obj   = {};
+    header.forEach((h, i) => obj[h] = (cells[i] || '').trim());
+    return normalizeQuestion(obj);
+  }).filter(q => q.level && q.category && q.question);
+}
+
+function parseCSVLine(line) {
+  const cells = [];
+  let cur = '', inQuote = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuote && line[i+1] === '"') { cur += '"'; i++; }
+      else inQuote = !inQuote;
+    } else if (ch === ',' && !inQuote) {
+      cells.push(cur); cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  cells.push(cur);
+  return cells;
+}
+
+function normalizeQuestion(obj) {
+  const type = (obj.type || 'multiple_choice').trim();
+  const q    = {
+    level:       (obj.level    || 'n5').trim().toLowerCase(),
+    category:    (obj.category || 'grammar').trim().toLowerCase(),
+    type,
+    question:    (obj.question    || '').trim(),
+    explanation: (obj.explanation || '').trim(),
+  };
+  if (type === 'reorder') {
+    const wordsRaw = obj.words || '';
+    q.words   = wordsRaw.split('|').map(s => s.trim()).filter(Boolean);
+    q.options = [];
+    q.answer  = typeof obj.answer === 'string' ? obj.answer.trim() : q.words.join('');
+  } else {
+    // Handle both flat CSV (option0..3) and JSON array (options)
+    if (Array.isArray(obj.options)) {
+      q.options = obj.options.map(s => String(s).trim());
+    } else {
+      q.options = [obj.option0, obj.option1, obj.option2, obj.option3]
+        .map(s => (s || '').trim()).filter(Boolean);
+    }
+    q.answer = parseInt(obj.answer) || 0;
+  }
+  return q;
+}
+
+// ── Run import ────────────────────────────────────────────────────────
+document.getElementById('import-run').addEventListener('click', async () => {
+  if (!pendingImport.length) return;
+  const btn    = document.getElementById('import-run');
+  const status = document.getElementById('import-status');
+  btn.disabled = true;
+  status.textContent = `Importing ${pendingImport.length} questions…`;
+  status.className   = 'import-status';
+
+  try {
+    const res = await api('/rest/v1/questions', {
+      method:  'POST',
+      headers: { Prefer: 'return=representation' },
+      body:    JSON.stringify(pendingImport),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const inserted = await res.json();
+    allQuestions = [...(Array.isArray(inserted) ? inserted : []), ...allQuestions];
+    renderTable();
+    status.textContent = `✓ ${inserted.length} question${inserted.length !== 1 ? 's' : ''} imported successfully!`;
+    status.className   = 'import-status ok';
+    pendingImport = [];
+    btn.textContent = 'Import';
+  } catch (err) {
+    status.textContent = '✗ Import failed: ' + err.message;
+    status.className   = 'import-status err';
+    btn.disabled = false;
+  }
+});
+
+// ── Template downloads ─────────────────────────────────────────────────
+document.getElementById('tpl-json').addEventListener('click', () => {
+  const template = [
+    {
+      "level": "n5",
+      "category": "grammar",
+      "type": "multiple_choice",
+      "question": "私___学生です。",
+      "options": ["は", "が", "を", "に"],
+      "answer": 0,
+      "explanation": "「は」is the topic marker particle. It marks 私 (I) as the topic of the sentence."
+    },
+    {
+      "level": "n5",
+      "category": "vocabulary",
+      "type": "multiple_choice",
+      "question": "「大きい」means:",
+      "options": ["small", "big", "old", "new"],
+      "answer": 1,
+      "explanation": "「大きい」(おおきい) means 'big' or 'large'."
+    },
+    {
+      "level": "n4",
+      "category": "grammar",
+      "type": "reorder",
+      "question": "Arrange into a correct sentence:",
+      "options": [],
+      "answer": "私は毎日学校に行きます",
+      "words": ["私は", "毎日", "学校に", "行きます"],
+      "explanation": "Correct order: Subject + Time + Destination + Verb."
+    }
+  ];
+  downloadText('questions-template.json', JSON.stringify(template, null, 2), 'application/json');
+});
+
+document.getElementById('tpl-csv').addEventListener('click', () => {
+  const csv = `level,category,type,question,option0,option1,option2,option3,answer,words,explanation
+n5,grammar,multiple_choice,私___学生です。,は,が,を,に,0,,「は」is the topic marker particle.
+n5,vocabulary,multiple_choice,「大きい」means:,small,big,old,new,1,,「大きい」(おおきい) means big or large.
+n4,grammar,reorder,Arrange into a correct sentence:,,,,,"私は毎日学校に行きます","私は|毎日|学校に|行きます",Correct order: Subject + Time + Destination + Verb.`;
+  downloadText('questions-template.csv', csv, 'text/csv');
+});
+
+function downloadText(filename, content, mime) {
+  const a   = document.createElement('a');
+  a.href    = URL.createObjectURL(new Blob([content], { type: mime }));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 </script>
 </body>
 </html>
