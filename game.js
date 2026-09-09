@@ -126,6 +126,12 @@ const Game = (() => {
 // ── Menu screen ─────────────────────────────────────────────────────────────
 Game.registerScreen('menu', {
   mount(el) {
+    // Sync Game.state.level with progress level — may differ after auto level-up
+    const progressLevel = Progress.getCurrentLevel();
+    if (Game.state.level !== progressLevel) {
+      Game.loadLevel(progressLevel).catch(() => {});
+    }
+
     el.innerHTML = `
       <div class="menu-wrap">
         <canvas id="menu-kame" width="160" height="120"></canvas>
@@ -133,7 +139,7 @@ Game.registerScreen('menu', {
         <p class="logo-sub">Kame Dojo</p>
         <div class="current-level-badge">
           <span class="current-level-label">Studying</span>
-          <span class="current-level-tag">${Game.state.level.toUpperCase()}</span>
+          <span class="current-level-tag">${progressLevel.toUpperCase()}</span>
           <button class="cal-badge-btn" id="menu-cal-btn" title="Take the placement test">🎌 Calibrate</button>
         </div>
         <div class="menu-rank" id="menu-rank-btn">

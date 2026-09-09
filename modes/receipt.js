@@ -30,6 +30,11 @@ Game.registerScreen('receipt', {
       } catch { return null; }
     })();
 
+    // Preload questions for the new level in the background so modes are ready
+    if (levelUp)   Game.loadLevel(levelUp.newLevel).catch(() => {});
+    if (levelDown) Game.loadLevel(levelDown.toLevel).catch(() => {});
+    updateUserBar();
+
     // Per-level XP — saveSession already called addCachedXP(score)
     const currentLevel = Progress.getCurrentLevel();
     const levelXP      = Progress.getDisplayXP();

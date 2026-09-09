@@ -25,20 +25,19 @@ Game.registerScreen('rankings', {
       const nextRank     = nextLevel ? Progress.getLevelRank(nextLevel) : null;
       const threshold    = Progress.LEVEL_UP_XP[currentLevel];
       const barPct       = threshold ? Math.min(100, Math.round((levelXP / threshold) * 100)) : 100;
+      const curIdx       = Progress.LEVEL_ORDER.indexOf(currentLevel);
 
-      // Per-level mastery stats
+      // Per-level mastery stats from sessions
       const mastery = Progress.LEVEL_ORDER.map(lvl => {
         const rows    = sessions.filter(s => s.level === lvl);
         const correct = rows.reduce((s, r) => s + (r.correct || 0), 0);
         const total   = rows.reduce((s, r) => s + (r.total   || 0), 0);
         const acc     = total > 0 ? Math.round((correct / total) * 100) : null;
-        const best    = rows.reduce((max, r) => Math.max(max, r.score || 0), 0);
-        return { lvl, runs: rows.length, acc, best };
+        return { lvl, runs: rows.length, acc };
       });
 
       const recent   = sessions.slice(0, 10);
       const modeIcon = { dash: '🐢', dojo: '⚔️', garden: '🌱' };
-      const curIdx   = Progress.LEVEL_ORDER.indexOf(currentLevel);
 
       document.getElementById('rank-loading').outerHTML = `
         <!-- Current rank card -->
@@ -54,37 +53,53 @@ Game.registerScreen('rankings', {
               ? `${levelXP.toLocaleString()} / ${threshold.toLocaleString()} XP &rarr; ${nextRank ? nextRank.badge + ' ' + nextRank.en : ''}`
               : '👑 Maximum level achieved!'}
           </div>
-          <div class="rank-total-xp">${currentLevel.toUpperCase()} XP: ${levelXP.toLocaleString()}</div>
         </div>
 
-        <!-- Level ladder -->
-        <div class="rank-section-title">Level Ladder</div>
-        <div class="rank-ladder">
+        <!-- JLPT Progress — ladder + mastery unified -->
+        <div class="rank-section-title">JLPT Progress</div>
+        <div class="prog-table">
           ${Progress.LEVEL_ORDER.map((lvl, i) => {
-            const r   = Progress.getLevelRank(lvl);
+            const r        = Progress.getLevelRank(lvl);
+            const m        = mastery[i];
             const xpNeeded = Progress.LEVEL_UP_XP[lvl];
-            const cls = lvl === currentLevel ? 'active' : i < curIdx ? 'cleared' : '';
-            return `<div class="rank-step ${cls}">
-              <span class="rank-step-badge">${r.badge}</span>
-              <span class="rank-step-label" style="${lvl === currentLevel ? `color:${r.color}` : ''}">${r.label}</span>
-              <span class="rank-step-xp">${xpNeeded ? xpNeeded.toLocaleString() + ' XP to next' : 'Max level'}</span>
-              ${lvl === currentLevel ? '<span class="rank-step-current">◀ YOU</span>' : ''}
+            const isActive  = lvl === currentLevel;
+            const isCleared = i < curIdx;
+            const isLocked  = i > curIdx;
+
+            const rowCls = isActive ? 'prog-active' : isCleared ? 'prog-cleared' : 'prog-locked';
+            const stateTag = isCleared
+              ? `<span class="prog-state-tag prog-tag-clear">✓ Cleared</span>`
+              : isActive
+              ? `<span class="prog-state-tag prog-tag-active">● Current</span>`
+              : `<span class="prog-state-tag prog-tag-locked">🔒 Locked</span>`;
+
+            const rightCol = isActive
+              ? `<div class="prog-xp-col">
+                   <div class="prog-bar-wrap">
+                     <div class="prog-bar" style="width:${barPct}%;background:${r.color}"></div>
+                   </div>
+                   <span class="prog-xp-text">${levelXP.toLocaleString()} / ${xpNeeded ? xpNeeded.toLocaleString() : '—'}</span>
+                 </div>`
+              : isCleared
+              ? `<div class="prog-mastery-col">
+                   <div class="prog-bar-wrap">
+                     <div class="prog-bar" style="width:${m.acc ?? 0}%;background:${r.color};opacity:0.7"></div>
+                   </div>
+                   <span class="prog-mastery-text">${m.runs} run${m.runs !== 1 ? 's' : ''} &middot; ${m.acc !== null ? m.acc + '%' : '—'} acc</span>
+                 </div>`
+              : `<span class="prog-locked-hint">${xpNeeded ? xpNeeded.toLocaleString() + ' XP to unlock' : ''}</span>`;
+
+            return `<div class="prog-row ${rowCls}">
+              <div class="prog-left">
+                <span class="prog-badge" style="color:${r.color}">${r.badge}</span>
+                <div class="prog-meta">
+                  <span class="prog-name" style="${isActive || isCleared ? `color:${r.color}` : ''}">${r.label}</span>
+                  ${stateTag}
+                </div>
+              </div>
+              <div class="prog-right">${rightCol}</div>
             </div>`;
           }).join('')}
-        </div>
-
-        <!-- Level mastery -->
-        <div class="rank-section-title">Level Mastery</div>
-        <div class="mastery-table">
-          ${mastery.map(m => `
-            <div class="mastery-row ${m.runs === 0 ? 'locked' : ''}">
-              <span class="mastery-lvl">${m.lvl.toUpperCase()}</span>
-              <div class="mastery-bar-wrap">
-                <div class="mastery-bar" style="width:${m.acc ?? 0}%"></div>
-              </div>
-              <span class="mastery-acc">${m.acc !== null ? m.acc + '%' : '—'}</span>
-              <span class="mastery-sessions">${m.runs} run${m.runs !== 1 ? 's' : ''}</span>
-            </div>`).join('')}
         </div>
 
         <!-- Recent sessions -->
@@ -103,7 +118,7 @@ Game.registerScreen('rankings', {
               <span class="session-date">${ts}</span>
             </div>`;
           }).join('')}
-        </div>` : '<p style="color:var(--text-dim);font-size:.85rem;text-align:center">No sessions yet — play a mode to start tracking!</p>'}
+        </div>` : '<p style="color:var(--text-dim);font-size:.85rem;text-align:center;margin-top:8px">No sessions yet — play a mode to start tracking!</p>'}
       `;
 
       requestAnimationFrame(() => {

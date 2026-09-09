@@ -1293,3 +1293,84 @@ rt {
   margin-left: 5px;
   vertical-align: middle;
 }
+
+/* ── JLPT Progress table (unified ladder + mastery) ─────────────────────── */
+.prog-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.prog-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color 0.15s;
+}
+.prog-active  { border-color: var(--accent); background: #111d3a; }
+.prog-cleared { opacity: 0.85; }
+.prog-locked  { opacity: 0.45; }
+
+.prog-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.prog-badge { font-size: 1.4rem; flex-shrink: 0; }
+.prog-meta  { display: flex; flex-direction: column; gap: 3px; }
+.prog-name  { font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
+
+.prog-state-tag {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 1px 6px;
+  width: fit-content;
+}
+.prog-tag-clear  { background: rgba(42,170,90,0.18); color: #6affaa; }
+.prog-tag-active { background: rgba(74,138,255,0.18); color: var(--accent); }
+.prog-tag-locked { background: rgba(138,154,192,0.12); color: var(--text-dim); }
+
+.prog-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 130px;
+}
+.prog-xp-col, .prog-mastery-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  width: 100%;
+}
+.prog-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: var(--bg2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.prog-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.7s ease;
+}
+.prog-xp-text, .prog-mastery-text {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.prog-locked-hint {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}

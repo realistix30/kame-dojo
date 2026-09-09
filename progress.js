@@ -27,7 +27,7 @@ const Progress = (() => {
   };
 
   // XP needed within each level to advance to the next level
-  const LEVEL_UP_XP = { n5: 1000, n4: 1500, n3: 2000, n2: 2500, n1: null };
+  const LEVEL_UP_XP = { n5: 5000, n4: 10000, n3: 20000, n2: 35000, n1: null };
   const LEVEL_ORDER = ['n5', 'n4', 'n3', 'n2', 'n1'];
 
   function getLevelRank(level) {
