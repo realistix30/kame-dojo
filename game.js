@@ -99,17 +99,10 @@ const Game = (() => {
     return shuffle(arr).slice(0, n);
   }
 
-  // ── Level progression ─────────────────────────────────────────────────────
-  // XP thresholds mirror the rank ladder; achieving a rank unlocks the next level.
-  function getLevelForXP(xp) {
-    const rank = Progress.getRankFromXP(xp);
-    return rank.id === 'novice' ? 'n5' : rank.id;
-  }
-
   // ── Init ─────────────────────────────────────────────────────────────────
   async function init() {
     try {
-      const level = getLevelForXP(Progress.getCachedXP());
+      const level = Progress.getCurrentLevel();
       await loadLevel(level);
       if (!Progress.getNickname()) {
         showScreen('nickname');
@@ -127,12 +120,18 @@ const Game = (() => {
     }
   }
 
-  return { state, loadLevel, getScore, setScore, showScreen, registerScreen, shuffle, sampleN, getLevelForXP, init };
+  return { state, loadLevel, getScore, setScore, showScreen, registerScreen, shuffle, sampleN, init };
 })();
 
 // ── Menu screen ─────────────────────────────────────────────────────────────
 Game.registerScreen('menu', {
   mount(el) {
+    // Sync Game.state.level with progress level — may differ after auto level-up
+    const progressLevel = Progress.getCurrentLevel();
+    if (Game.state.level !== progressLevel) {
+      Game.loadLevel(progressLevel).catch(() => {});
+    }
+
     el.innerHTML = `
       <div class="menu-wrap">
         <canvas id="menu-kame" width="160" height="120"></canvas>
@@ -140,7 +139,8 @@ Game.registerScreen('menu', {
         <p class="logo-sub">Kame Dojo</p>
         <div class="current-level-badge">
           <span class="current-level-label">Studying</span>
-          <span class="current-level-tag">${Game.state.level.toUpperCase()}</span>
+          <span class="current-level-tag">${progressLevel.toUpperCase()}</span>
+          <button class="cal-badge-btn" id="menu-cal-btn" title="Take the placement test">🎌 Calibrate</button>
         </div>
         <div class="menu-rank" id="menu-rank-btn">
           <span class="menu-rank-badge" id="menu-rank-badge">🥋</span>
@@ -186,17 +186,21 @@ Game.registerScreen('menu', {
     loop();
     el._stopKame = () => cancelAnimationFrame(raf);
 
-    // Rank badge — show current rank and link to rankings
-    const xp        = Progress.getCachedXP();
-    const rank      = Progress.getRankFromXP(xp);
-    const nextRank  = Progress.getNextRank(rank);
+    // Rank badge — show current level rank and XP progress
+    const lvl       = Progress.getCurrentLevel();
+    const xp        = Progress.getDisplayXP();
+    const rank      = Progress.getLevelRank(lvl);
+    const threshold = Progress.LEVEL_UP_XP[lvl];
+    const nextLevel = Progress.getNextLevel(lvl);
+    const nextRank  = nextLevel ? Progress.getLevelRank(nextLevel) : null;
     document.getElementById('menu-rank-badge').textContent = rank.badge;
     document.getElementById('menu-rank-label').textContent = `${rank.label} — ${rank.en}`;
-    document.getElementById('menu-rank-sub').textContent   = nextRank
-      ? `${xp.toLocaleString()} XP · ${(nextRank.minXP - xp).toLocaleString()} to ${nextRank.en}`
-      : `${xp.toLocaleString()} XP · Max rank!`;
+    document.getElementById('menu-rank-sub').textContent   = nextRank && threshold
+      ? `${xp.toLocaleString()} / ${threshold.toLocaleString()} XP · ${(threshold - xp).toLocaleString()} to ${nextRank.en}`
+      : `${xp.toLocaleString()} XP · Max level!`;
     document.getElementById('menu-rank-btn').addEventListener('click', () => Game.showScreen('rankings'));
     document.getElementById('menu-global-btn').addEventListener('click', () => Game.showScreen('leaderboard'));
+    document.getElementById('menu-cal-btn').addEventListener('click', () => Game.showScreen('calibration'));
 
     // Mode cards — gate on per-mode daily limit
     el.querySelectorAll('.mode-card').forEach(card => {
@@ -248,5 +252,68 @@ function _showDailyModal(el, mode) {
   document.getElementById('dm-continue').addEventListener('click', () => { overlay.remove(); Game.showScreen(mode); });
 }
 
+// ── Persistent user bar ──────────────────────────────────────────────────────
+function updateUserBar() {
+  const bar  = document.getElementById('user-bar');
+  if (!bar) return;
+  const nick = Progress.getNickname();
+  if (!nick) { bar.style.display = 'none'; return; }
+  const lvl  = Progress.getCurrentLevel();
+  const rank = Progress.getLevelRank(lvl);
+  bar.innerHTML = `
+    <span class="user-bar-badge">${rank.badge}</span>
+    <span class="user-bar-nick">${nick}</span>
+    <span class="user-bar-level">${lvl.toUpperCase()}</span>
+    <button class="user-bar-settings" id="ub-settings-btn" title="Change study level">⚙</button>`;
+  bar.style.display = 'flex';
+
+  document.getElementById('ub-settings-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    _toggleLevelPanel();
+  });
+}
+
+function _toggleLevelPanel() {
+  const existing = document.getElementById('level-panel');
+  if (existing) { existing.remove(); return; }
+
+  const currentLvl = Progress.getCurrentLevel();
+  const panel = document.createElement('div');
+  panel.id = 'level-panel';
+  panel.className = 'level-panel';
+  panel.innerHTML = `
+    <div class="level-panel-title">Study Level</div>
+    <p class="level-panel-note">XP resets when changing level.</p>
+    <div class="level-panel-btns">
+      ${['n5','n4','n3','n2','n1'].map(lvl => `
+        <button class="level-panel-btn${lvl === currentLvl ? ' active' : ''}" data-lvl="${lvl}">
+          ${lvl.toUpperCase()}
+        </button>`).join('')}
+    </div>`;
+  document.body.appendChild(panel);
+
+  panel.querySelectorAll('.level-panel-btn').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const lvl = btn.dataset.lvl;
+      Progress.setCurrentLevel(lvl);
+      await Game.loadLevel(lvl);
+      updateUserBar();
+      panel.remove();
+      if (Game.state.currentScreen === 'menu') Game.showScreen('menu');
+    });
+  });
+
+  // Close on any outside click
+  setTimeout(() => {
+    document.addEventListener('click', () => {
+      document.getElementById('level-panel')?.remove();
+    }, { once: true });
+  }, 0);
+}
+
 // ── Bootstrap ────────────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => Game.init());
+window.addEventListener('DOMContentLoaded', () => {
+  updateUserBar();
+  Game.init();
+});
