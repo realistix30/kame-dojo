@@ -1,7 +1,10 @@
-// modes/nickname.js — first-run nickname setup screen
+// modes/nickname.js — first-run nickname + starting level setup
 
 Game.registerScreen('nickname', {
   mount(el) {
+    const LEVELS = ['n5', 'n4', 'n3', 'n2', 'n1'];
+    let chosenLevel = 'n5';
+
     el.innerHTML = `
       <div class="nickname-wrap">
         <canvas id="nick-kame" width="120" height="100"></canvas>
@@ -22,6 +25,20 @@ Game.registerScreen('nickname', {
           />
           <div class="nickname-error" id="nick-error"></div>
           <div class="nickname-counter"><span id="nick-count">0</span> / 20</div>
+
+          <div class="nickname-level-section">
+            <div class="nickname-level-label">Starting Level</div>
+            <div class="nickname-level-picker" id="nick-level-picker">
+              ${LEVELS.map(lvl => `
+                <button class="nick-lvl-btn${lvl === 'n5' ? ' active' : ''}" data-lvl="${lvl}">
+                  ${lvl.toUpperCase()}
+                </button>`).join('')}
+            </div>
+            <p class="nickname-hint" style="margin-top:4px;font-size:.7rem">
+              You can change this anytime, or take a calibration test.
+            </p>
+          </div>
+
           <button class="btn-primary nickname-btn" id="nick-confirm">Enter the Dojo 🐢</button>
         </div>
       </div>`;
@@ -45,14 +62,24 @@ Game.registerScreen('nickname', {
     const errEl   = document.getElementById('nick-error');
     const btn     = document.getElementById('nick-confirm');
 
+    // Level picker
+    el.querySelectorAll('.nick-lvl-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        el.querySelectorAll('.nick-lvl-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        chosenLevel = b.dataset.lvl;
+        sprite.setState('run');
+      });
+    });
+
     input.addEventListener('input', () => {
       const len = input.value.length;
       counter.textContent = len;
       errEl.textContent   = '';
-      sprite.setState(len > 0 ? 'run' : 'idle', len > 0 ? 0 : 0);
+      sprite.setState(len > 0 ? 'run' : 'idle');
     });
 
-    function confirm() {
+    async function confirm() {
       const nick = input.value.trim();
       if (nick.length < 2) {
         errEl.textContent = 'Nickname must be at least 2 characters.';
@@ -60,9 +87,12 @@ Game.registerScreen('nickname', {
         return;
       }
       sprite.setState('celebrate', 60);
-      btn.disabled      = true;
-      btn.textContent   = 'Saving…';
+      btn.disabled    = true;
+      btn.textContent = 'Saving…';
+      Progress.setCurrentLevel(chosenLevel);
       Progress.saveNickname(nick);
+      await Game.loadLevel(chosenLevel);
+      updateUserBar();
       setTimeout(() => Game.showScreen('menu'), 600);
     }
 

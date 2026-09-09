@@ -18,20 +18,16 @@ Game.registerScreen('rankings', {
     document.getElementById('rank-global-btn').addEventListener('click', () => Game.showScreen('leaderboard'));
 
     Progress.fetchSessions().then(sessions => {
-      // Sync XP: trust whichever is higher (server vs cached)
-      const serverXP = sessions.reduce((s, r) => s + (r.score || 0), 0);
-      const xp = Math.max(Progress.getCachedXP(), serverXP);
-      localStorage.setItem('kame-total-xp', xp);
-
-      const rank     = Progress.getRankFromXP(xp);
-      const nextRank = Progress.getNextRank(rank);
-      const xpInto   = xp - rank.minXP;
-      const xpNeeded = nextRank ? nextRank.minXP - rank.minXP : 1;
-      const barPct   = nextRank ? Math.min(100, Math.round((xpInto / xpNeeded) * 100)) : 100;
+      const currentLevel = Progress.getCurrentLevel();
+      const levelXP      = Progress.getDisplayXP();
+      const rank         = Progress.getLevelRank(currentLevel);
+      const nextLevel    = Progress.getNextLevel(currentLevel);
+      const nextRank     = nextLevel ? Progress.getLevelRank(nextLevel) : null;
+      const threshold    = Progress.LEVEL_UP_XP[currentLevel];
+      const barPct       = threshold ? Math.min(100, Math.round((levelXP / threshold) * 100)) : 100;
 
       // Per-level mastery stats
-      const LEVELS = ['n5', 'n4', 'n3', 'n2', 'n1'];
-      const mastery = LEVELS.map(lvl => {
+      const mastery = Progress.LEVEL_ORDER.map(lvl => {
         const rows    = sessions.filter(s => s.level === lvl);
         const correct = rows.reduce((s, r) => s + (r.correct || 0), 0);
         const total   = rows.reduce((s, r) => s + (r.total   || 0), 0);
@@ -40,8 +36,9 @@ Game.registerScreen('rankings', {
         return { lvl, runs: rows.length, acc, best };
       });
 
-      const recent = sessions.slice(0, 10);
+      const recent   = sessions.slice(0, 10);
       const modeIcon = { dash: '🐢', dojo: '⚔️', garden: '🌱' };
+      const curIdx   = Progress.LEVEL_ORDER.indexOf(currentLevel);
 
       document.getElementById('rank-loading').outerHTML = `
         <!-- Current rank card -->
@@ -53,23 +50,25 @@ Game.registerScreen('rankings', {
             <div class="rank-bar" style="width:0%;background:${rank.color}" id="rank-main-bar"></div>
           </div>
           <div class="rank-progress-text">
-            ${nextRank
-              ? `${xpInto.toLocaleString()} / ${xpNeeded.toLocaleString()} XP &rarr; ${nextRank.badge} ${nextRank.en}`
-              : '🏆 Maximum rank achieved!'}
+            ${threshold
+              ? `${levelXP.toLocaleString()} / ${threshold.toLocaleString()} XP &rarr; ${nextRank ? nextRank.badge + ' ' + nextRank.en : ''}`
+              : '👑 Maximum level achieved!'}
           </div>
-          <div class="rank-total-xp">Total XP: ${xp.toLocaleString()}</div>
+          <div class="rank-total-xp">${currentLevel.toUpperCase()} XP: ${levelXP.toLocaleString()}</div>
         </div>
 
-        <!-- Rank ladder -->
-        <div class="rank-section-title">Rank Ladder</div>
+        <!-- Level ladder -->
+        <div class="rank-section-title">Level Ladder</div>
         <div class="rank-ladder">
-          ${Progress.RANKS.map(r => {
-            const cls = r.id === rank.id ? 'active' : xp >= r.minXP ? 'cleared' : '';
+          ${Progress.LEVEL_ORDER.map((lvl, i) => {
+            const r   = Progress.getLevelRank(lvl);
+            const xpNeeded = Progress.LEVEL_UP_XP[lvl];
+            const cls = lvl === currentLevel ? 'active' : i < curIdx ? 'cleared' : '';
             return `<div class="rank-step ${cls}">
               <span class="rank-step-badge">${r.badge}</span>
-              <span class="rank-step-label" style="${r.id === rank.id ? `color:${r.color}` : ''}">${r.label}</span>
-              <span class="rank-step-xp">${r.minXP === 0 ? 'Start' : r.minXP.toLocaleString() + ' XP'}</span>
-              ${r.id === rank.id ? '<span class="rank-step-current">◀ YOU</span>' : ''}
+              <span class="rank-step-label" style="${lvl === currentLevel ? `color:${r.color}` : ''}">${r.label}</span>
+              <span class="rank-step-xp">${xpNeeded ? xpNeeded.toLocaleString() + ' XP to next' : 'Max level'}</span>
+              ${lvl === currentLevel ? '<span class="rank-step-current">◀ YOU</span>' : ''}
             </div>`;
           }).join('')}
         </div>
@@ -107,7 +106,6 @@ Game.registerScreen('rankings', {
         </div>` : '<p style="color:var(--text-dim);font-size:.85rem;text-align:center">No sessions yet — play a mode to start tracking!</p>'}
       `;
 
-      // Animate bar
       requestAnimationFrame(() => {
         const bar = document.getElementById('rank-main-bar');
         if (bar) bar.style.width = barPct + '%';

@@ -14,18 +14,30 @@ Game.registerScreen('receipt', {
     const modeLimit   = Progress.DAILY_LIMITS[mode];
     const dailyDone   = dailyStats.answered >= modeLimit;
 
-    // XP before/after — saveSession already called addCachedXP(score)
-    const newXP  = Progress.getCachedXP();
-    const prevXP = newXP - score;
+    // Check for level-up / level-down events (written during saveSession)
+    const levelUp = (() => {
+      try {
+        const v = localStorage.getItem('kame-pending-levelup');
+        if (v) { localStorage.removeItem('kame-pending-levelup'); return JSON.parse(v); }
+        return null;
+      } catch { return null; }
+    })();
+    const levelDown = (() => {
+      try {
+        const v = localStorage.getItem('kame-pending-leveldown');
+        if (v) { localStorage.removeItem('kame-pending-leveldown'); return JSON.parse(v); }
+        return null;
+      } catch { return null; }
+    })();
 
-    const prevRank = Progress.getRankFromXP(prevXP);
-    const newRank  = Progress.getRankFromXP(newXP);
-    const rankUp   = prevRank.id !== newRank.id;
-
-    const nextRank    = Progress.getNextRank(newRank);
-    const xpIntoRank  = newXP - newRank.minXP;
-    const xpNeeded    = nextRank ? nextRank.minXP - newRank.minXP : 1;
-    const barPct      = nextRank ? Math.min(100, Math.round((xpIntoRank / xpNeeded) * 100)) : 100;
+    // Per-level XP — saveSession already called addCachedXP(score)
+    const currentLevel = Progress.getCurrentLevel();
+    const levelXP      = Progress.getDisplayXP();
+    const rank         = Progress.getLevelRank(currentLevel);
+    const nextLevel    = Progress.getNextLevel(currentLevel);
+    const nextRank     = nextLevel ? Progress.getLevelRank(nextLevel) : null;
+    const threshold    = Progress.LEVEL_UP_XP[currentLevel];
+    const barPct       = threshold ? Math.min(100, Math.round((levelXP / threshold) * 100)) : 100;
 
     el.innerHTML = `
       <div class="receipt-wrap">
@@ -65,29 +77,34 @@ Game.registerScreen('receipt', {
 
           <div class="receipt-rule"></div>
 
+          ${levelUp ? `
+          <div class="levelup-banner">
+            ⬆️ LEVEL UP! &nbsp; ${Progress.getLevelRank(levelUp.prevLevel).badge} ${levelUp.prevLevel.toUpperCase()} &rarr; ${rank.badge} ${currentLevel.toUpperCase()}
+          </div>` : ''}
+          ${levelDown ? `
+          <div class="leveldown-banner">
+            ⬇️ LEVEL DOWN &nbsp; ${Progress.getLevelRank(levelDown.fromLevel).badge} ${levelDown.fromLevel.toUpperCase()} &rarr; ${rank.badge} ${currentLevel.toUpperCase()}
+            <span class="leveldown-sub">Restarting at ${levelDown.newXP.toLocaleString()} XP</span>
+          </div>` : ''}
+
           <div class="receipt-rank-section">
-            <div class="receipt-rank-label">DOJO RANK</div>
-            <div class="receipt-rank-badge" style="color:${newRank.color}">
-              ${newRank.badge} ${newRank.label}
-              <span class="receipt-rank-en">${newRank.en}</span>
+            <div class="receipt-rank-label">CURRENT LEVEL</div>
+            <div class="receipt-rank-badge" style="color:${rank.color}">
+              ${rank.badge} ${rank.label}
+              <span class="receipt-rank-en">${rank.en}</span>
             </div>
             <div class="rank-bar-wrap">
-              <div class="rank-bar" style="width:0%;background:${newRank.color}" id="receipt-bar"></div>
+              <div class="rank-bar" style="width:0%;background:${rank.color}" id="receipt-bar"></div>
             </div>
             <div class="rank-progress-text">
-              ${nextRank
-                ? `${xpIntoRank.toLocaleString()} / ${xpNeeded.toLocaleString()} XP &rarr; ${nextRank.badge} ${nextRank.en}`
-                : '🏆 Maximum rank achieved!'}
+              ${threshold
+                ? `${levelXP.toLocaleString()} / ${threshold.toLocaleString()} XP &rarr; ${nextRank ? nextRank.badge + ' ' + nextRank.en : ''}`
+                : '👑 Maximum level achieved!'}
             </div>
           </div>
 
-          ${rankUp ? `
-          <div class="rankup-banner">
-            ⬆️ RANK UP! &nbsp; ${prevRank.badge} ${prevRank.en} &rarr; ${newRank.badge} ${newRank.en}
-          </div>` : ''}
-
           <div class="receipt-rule"></div>
-          <div class="receipt-total-xp">Total XP: ${newXP.toLocaleString()}</div>
+          <div class="receipt-total-xp">${currentLevel.toUpperCase()} XP: ${levelXP.toLocaleString()}</div>
 
           <div class="receipt-buttons">
             <button class="btn-primary"   id="r-again">Play Again</button>
@@ -97,7 +114,6 @@ Game.registerScreen('receipt', {
         </div>
       </div>`;
 
-    // Animate the rank bar on next frame
     requestAnimationFrame(() => {
       const bar = document.getElementById('receipt-bar');
       if (bar) bar.style.width = barPct + '%';
