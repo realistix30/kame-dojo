@@ -51,7 +51,7 @@ Game.registerScreen('calibration', {
             </p>
             <div class="cal-steps">${levelStepsHtml(-1)}</div>
             <p class="cal-note">
-              This only moves you <b>up</b> — your progress is never reduced.
+              ⚠️ Your XP will reset to <b>0</b> at your placed level.
             </p>
             <button class="btn-primary cal-start-btn" id="cal-start">Start Test</button>
             <button class="btn-secondary" id="cal-cancel" style="width:100%">← Back</button>
@@ -298,6 +298,7 @@ Game.registerScreen('calibration', {
 
       Progress.setCurrentLevel(finalLevel);
       Game.loadLevel(finalLevel).catch(() => {});
+      updateUserBar();
 
       const rank      = Progress.getLevelRank(finalLevel);
       const allPassed = CAL_LEVELS.every(l => results[l]?.passed);

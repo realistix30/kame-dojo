@@ -1,0 +1,48 @@
+[
+  {
+    "level": "n5",
+    "category": "grammar",
+    "type": "multiple_choice",
+    "question": "私___学生です。",
+    "options": ["は", "が", "を", "に"],
+    "answer": 0,
+    "explanation": "「は」is the topic marker particle. It marks 私 (I) as the topic of the sentence."
+  },
+  {
+    "level": "n5",
+    "category": "vocabulary",
+    "type": "multiple_choice",
+    "question": "「大きい」means:",
+    "options": ["small", "big", "old", "new"],
+    "answer": 1,
+    "explanation": "「大きい」(おおきい) means 'big' or 'large'."
+  },
+  {
+    "level": "n5",
+    "category": "kanji",
+    "type": "multiple_choice",
+    "question": "What is the reading of 「山」?",
+    "options": ["かわ", "やま", "もり", "はな"],
+    "answer": 1,
+    "explanation": "「山」(やま / yama) means 'mountain'."
+  },
+  {
+    "level": "n4",
+    "category": "grammar",
+    "type": "reorder",
+    "question": "Arrange into a correct sentence:",
+    "options": [],
+    "answer": "私は毎日学校に行きます",
+    "words": ["私は", "毎日", "学校に", "行きます"],
+    "explanation": "Correct order follows Subject + Time + Destination + Verb pattern."
+  },
+  {
+    "level": "n4",
+    "category": "vocabulary",
+    "type": "multiple_choice",
+    "question": "「約束」means:",
+    "options": ["promise", "meeting", "rule", "custom"],
+    "answer": 0,
+    "explanation": "「約束」(やくそく) means 'promise' or 'appointment'."
+  }
+]
