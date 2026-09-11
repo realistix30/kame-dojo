@@ -5,7 +5,7 @@ const PLANT_NAMES  = ['seed', 'sprout', 'flower', 'tree'];
 
 Game.registerScreen('garden', {
   mount(el) {
-    const questions = [...Game.state.questions.vocabulary];
+    const questions = Game.shuffle(Game.state.questions.vocabulary);
     if (!questions.length) {
       el.innerHTML = `<div class="center-msg"><p>No vocabulary questions for ${Game.state.level.toUpperCase()} yet!</p><button class="btn-primary" onclick="Game.showScreen('menu')">Back</button></div>`;
       return;
@@ -27,6 +27,7 @@ Game.registerScreen('garden', {
     let sessionCorrect = 0;
     let sessionTotal   = 0;
     let answered       = false;
+    let currentAnswer  = 0;
 
     function buildQueue() {
       // Prioritize questions whose plants haven't reached max stage yet
@@ -183,9 +184,11 @@ Game.registerScreen('garden', {
       document.getElementById('garden-fb').className   = 'garden-feedback';
       answered = false;
 
+      const { options, answer } = Game.shuffleOptions(q);
+      currentAnswer = answer;
       const choiceDiv = document.getElementById('garden-choices');
       choiceDiv.innerHTML = '';
-      q.options.forEach((opt, i) => {
+      options.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className   = 'choice-btn garden-choice';
         btn.textContent = opt;
@@ -200,17 +203,17 @@ Game.registerScreen('garden', {
 
       document.querySelectorAll('.garden-choice').forEach((b, i) => {
         b.disabled = true;
-        if (i === q.answer) b.classList.add('correct');
-        else if (i === idx && idx !== q.answer) b.classList.add('wrong');
+        if (i === currentAnswer) b.classList.add('correct');
+        else if (i === idx && idx !== currentAnswer) b.classList.add('wrong');
       });
 
-      const correct = idx === q.answer;
+      const correct = idx === currentAnswer;
       const fb      = document.getElementById('garden-fb');
       sessionTotal++;
       if (correct) sessionCorrect++;
 
       if (correct) {
-        score += 50;
+        score += 10;
         document.getElementById('garden-score').textContent = score;
         const prev  = garden[q.id] || 0;
         const next  = Math.min(prev + 1, 3);

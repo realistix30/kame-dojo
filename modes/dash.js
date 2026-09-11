@@ -2,7 +2,7 @@
 
 Game.registerScreen('dash', {
   mount(el) {
-    const questions = Game.sampleN(Game.state.questions.kanji, 20);
+    let remaining = Game.shuffle([...Game.state.questions.kanji]);
     el.innerHTML = `
       <div class="dash-wrap">
         <div class="hud">
@@ -34,14 +34,15 @@ Game.registerScreen('dash', {
     el._resizeOff = () => window.removeEventListener('resize', resize);
 
     // ── Game state ──────────────────────────────────────────────────────────
-    let score      = 0;
-    let correct    = 0;
-    let attempted  = 0;
-    let lives      = 3;
-    let qIndex     = 0;
-    let gameActive = true;
-    let answered   = false;
+    let score         = 0;
+    let correct       = 0;
+    let attempted     = 0;
+    let lives         = 3;
+    let gameActive    = true;
+    let answered      = false;
     let feedbackTimer = 0;
+    let currentAnswer = 0;
+    let currentQ      = null;
 
     const KAME_X    = 80;
     const GROUND_Y  = 170;
@@ -78,11 +79,15 @@ Game.registerScreen('dash', {
     let groundOff = 0;
 
     // ── Questions ───────────────────────────────────────────────────────────
-    function currentQ() { return questions[qIndex]; }
+    function drawNextQ() {
+      if (!remaining.length) remaining = Game.shuffle([...Game.state.questions.kanji]);
+      currentQ = remaining.pop();
+    }
 
     function spawnObstacle() {
       if (!gameActive) return;
-      const q = currentQ();
+      drawNextQ();
+      const q = currentQ;
       obstacle = {
         x: canvas.width + 20,
         kanji: q.question,
@@ -93,9 +98,11 @@ Game.registerScreen('dash', {
     }
 
     function renderChoices(q) {
+      const { options, answer } = Game.shuffleOptions(q);
+      currentAnswer = answer;
       const div = document.getElementById('dash-choices');
       div.innerHTML = '';
-      q.options.forEach((opt, i) => {
+      options.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = 'choice-btn';
         btn.textContent = opt;
@@ -108,21 +115,20 @@ Game.registerScreen('dash', {
     function onChoice(idx) {
       if (!gameActive || answered || !obstacle) return;
       answered = true;
-      const q   = currentQ();
-      const ok  = idx === q.answer;
+      const ok  = idx === currentAnswer;
 
       document.querySelectorAll('.choice-btn').forEach((b, i) => {
         b.disabled = true;
-        if (i === q.answer) b.classList.add('correct');
+        if (i === currentAnswer) b.classList.add('correct');
         else if (i === idx && !ok) b.classList.add('wrong');
       });
 
-      showFeedback(ok, q.explanation);
+      showFeedback(ok, currentQ.explanation);
       attempted++;
 
       if (ok) {
         correct++;
-        score += 100;
+        score += 10;
         document.getElementById('dash-score').textContent = score;
         sprite.setState('celebrate', 30);
         obstacle = null;
@@ -155,12 +161,8 @@ Game.registerScreen('dash', {
     }
 
     function nextQuestion() {
-      qIndex++;
-      if (qIndex >= questions.length) {
-        endGame(true);
-        return;
-      }
-      obstSpeed = Math.min(3.5 + qIndex * 0.15, 7);
+      if (attempted >= 20) { endGame(true); return; }
+      obstSpeed = Math.min(3.5 + attempted * 0.15, 7);
       spawnObstacle();
     }
 
@@ -305,7 +307,7 @@ Game.registerScreen('dash', {
           lives      = Math.max(0, lives - 1);
           updateLives();
           sprite.setState('hurt', 40);
-          showFeedback(false, 'Too slow! ' + currentQ().explanation);
+          showFeedback(false, 'Too slow! ' + (currentQ?.explanation || ''));
           feedbackTimer = 60;
 
           if (lives <= 0) {
