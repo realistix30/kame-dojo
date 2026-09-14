@@ -41,6 +41,11 @@ const Game = (() => {
       });
     }
 
+    // Shuffle each category so the base pool has no fixed ID order
+    data.kanji      = shuffle(data.kanji);
+    data.grammar    = shuffle(data.grammar);
+    data.vocabulary = shuffle(data.vocabulary);
+
     state.level     = level;
     state.questions = data;
     return data;
@@ -99,6 +104,19 @@ const Game = (() => {
     return shuffle(arr).slice(0, n);
   }
 
+  // Returns { options, answer } with options shuffled and answer index remapped.
+  // Pass the raw question object; reorder questions are returned unchanged.
+  function shuffleOptions(q) {
+    if (q.type === 'reorder' || !Array.isArray(q.options) || q.options.length === 0) {
+      return { options: q.options, answer: q.answer };
+    }
+    const indices = shuffle(q.options.map((_, i) => i));
+    return {
+      options: indices.map(i => q.options[i]),
+      answer:  indices.indexOf(q.answer),
+    };
+  }
+
   // ── Init ─────────────────────────────────────────────────────────────────
   async function init() {
     try {
@@ -120,7 +138,7 @@ const Game = (() => {
     }
   }
 
-  return { state, loadLevel, getScore, setScore, showScreen, registerScreen, shuffle, sampleN, init };
+  return { state, loadLevel, getScore, setScore, showScreen, registerScreen, shuffle, sampleN, shuffleOptions, init };
 })();
 
 // ── Menu screen ─────────────────────────────────────────────────────────────
@@ -202,7 +220,7 @@ Game.registerScreen('menu', {
     document.getElementById('menu-global-btn').addEventListener('click', () => Game.showScreen('leaderboard'));
     document.getElementById('menu-cal-btn').addEventListener('click', () => Game.showScreen('calibration'));
 
-    // Mode cards — gate on per-mode daily limit
+    // Mode cards — show info gate when daily limit reached, then allow entry without XP
     el.querySelectorAll('.mode-card').forEach(card => {
       card.addEventListener('click', () => {
         const m = card.dataset.mode;
@@ -227,6 +245,7 @@ function _gardenCount() {
   } catch { return 0; }
 }
 
+
 function _showDailyModal(el, mode) {
   const daily    = Progress.getDailyStats(mode);
   const accuracy = daily.answered > 0 ? Math.round((daily.correct / daily.answered) * 100) : 0;
@@ -236,15 +255,15 @@ function _showDailyModal(el, mode) {
     <div class="daily-modal-card">
       <div class="daily-modal-icon">🎉</div>
       <h3 class="daily-modal-title">Daily Goal Complete!</h3>
-      <p class="daily-modal-body">You've answered <b>${daily.answered}</b> questions today. Your brain needs rest to consolidate what you learned — come back tomorrow for stronger retention!</p>
+      <p class="daily-modal-body">You've hit today's limit of <b>${Progress.DAILY_LIMITS[mode]}</b> questions. You can keep going for practice, but <b>no XP will be earned</b> until tomorrow.</p>
       <div class="daily-modal-stats">
         <div class="daily-stat"><span class="daily-stat-num">${accuracy}%</span><span class="daily-stat-label">Accuracy</span></div>
         <div class="daily-stat"><span class="daily-stat-num">+${daily.xpEarned.toLocaleString()}</span><span class="daily-stat-label">XP today</span></div>
         <div class="daily-stat"><span class="daily-stat-num">${daily.correct}</span><span class="daily-stat-label">Correct</span></div>
       </div>
       <div class="daily-modal-btns">
-        <button class="btn-secondary" id="dm-rest">Rest today 🌙</button>
-        <button class="btn-primary"   id="dm-continue">Keep going</button>
+        <button class="btn-secondary" id="dm-rest">Rest for now 🌙</button>
+        <button class="btn-primary"   id="dm-continue">Keep going (no XP)</button>
       </div>
     </div>`;
   el.appendChild(overlay);
@@ -277,11 +296,20 @@ function _toggleLevelPanel() {
   const existing = document.getElementById('level-panel');
   if (existing) { existing.remove(); return; }
 
-  const currentLvl = Progress.getCurrentLevel();
+  const currentLvl  = Progress.getCurrentLevel();
+  const currentNick = Progress.getNickname();
   const panel = document.createElement('div');
   panel.id = 'level-panel';
   panel.className = 'level-panel';
   panel.innerHTML = `
+    <div class="level-panel-title">Nickname</div>
+    <div class="level-panel-nick-row">
+      <input class="level-panel-nick-input" id="lp-nick-input" type="text"
+        value="${currentNick.replace(/"/g,'&quot;')}" maxlength="20" placeholder="2–20 characters">
+      <button class="level-panel-nick-save" id="lp-nick-save">Save</button>
+    </div>
+    <div class="level-panel-nick-msg" id="lp-nick-msg"></div>
+    <div class="level-panel-divider"></div>
     <div class="level-panel-title">Study Level</div>
     <p class="level-panel-note">XP resets when changing level.</p>
     <div class="level-panel-btns">
@@ -292,6 +320,27 @@ function _toggleLevelPanel() {
     </div>`;
   document.body.appendChild(panel);
 
+  // Nickname save
+  const nickInput = document.getElementById('lp-nick-input');
+  const nickMsg   = document.getElementById('lp-nick-msg');
+  document.getElementById('lp-nick-save').addEventListener('click', e => {
+    e.stopPropagation();
+    const val = nickInput.value.trim();
+    if (val.length < 2 || val.length > 20) {
+      nickMsg.textContent = 'Nickname must be 2–20 characters.';
+      nickMsg.style.color = 'var(--red, #dd3333)';
+      return;
+    }
+    Progress.saveNickname(val);
+    updateUserBar();
+    nickMsg.textContent = '✓ Saved!';
+    nickMsg.style.color = 'var(--green, #2aaa5a)';
+  });
+
+  // Prevent outside-click from firing when typing inside the input
+  nickInput.addEventListener('click', e => e.stopPropagation());
+
+  // Level buttons
   panel.querySelectorAll('.level-panel-btn').forEach(btn => {
     btn.addEventListener('click', async e => {
       e.stopPropagation();

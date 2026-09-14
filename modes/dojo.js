@@ -8,21 +8,21 @@ const SENSEI_LIST = [
 
 Game.registerScreen('dojo', {
   mount(el) {
-    const questions = Game.sampleN(Game.state.questions.grammar, 15);
-    if (!questions.length) {
+    let remaining = Game.shuffle([...Game.state.questions.grammar]);
+    if (!remaining.length) {
       el.innerHTML = `<div class="center-msg"><p>No grammar questions for ${Game.state.level.toUpperCase()} yet!</p><button class="btn-primary" onclick="Game.showScreen('menu')">Back</button></div>`;
       return;
     }
 
-    let score        = 0;
-    let correctCount = 0;
-    let attempted    = 0;
-    let qIndex     = 0;
-    let sensei     = 0;
-    let senseiHp   = SENSEI_LIST[0].hp;
-    let playerHp   = 5;
-    let maxSHp     = SENSEI_LIST[0].hp;
-    let maxPHp     = 5;
+    let score          = 0;
+    let correctCount   = 0;
+    let attempted      = 0;
+    let sensei         = 0;
+    let senseiHp       = SENSEI_LIST[0].hp;
+    let playerHp       = 5;
+    let maxSHp         = SENSEI_LIST[0].hp;
+    let maxPHp         = 5;
+    let shuffledAnswer = 0;
     let busy       = false;
 
     el.innerHTML = `
@@ -83,8 +83,9 @@ Game.registerScreen('dojo', {
     }
 
     function renderQuestion() {
-      if (qIndex >= questions.length) { endBattle('win'); return; }
-      const q = questions[qIndex];
+      if (attempted >= 15) { endBattle('win'); return; }
+      if (!remaining.length) remaining = Game.shuffle([...Game.state.questions.grammar]);
+      const q = remaining.pop();
       const qbox = document.getElementById('question-box');
       qbox.innerHTML = '';
 
@@ -131,15 +132,17 @@ Game.registerScreen('dojo', {
         });
       } else {
         qbox.innerHTML = `<p class="q-text">${Furigana.annotate(q.question, lvl)}</p>`;
+        const { options: shuffOpts, answer: shuffAns } = Game.shuffleOptions(q);
+        shuffledAnswer = shuffAns;
         const choiceDiv = document.getElementById('dojo-choices');
         choiceDiv.innerHTML = '';
-        q.options.forEach((opt, i) => {
+        shuffOpts.forEach((opt, i) => {
           const btn = document.createElement('button');
           btn.className = 'choice-btn';
           btn.textContent = opt;
           btn.addEventListener('click', () => {
             if (busy) return;
-            processAnswer(i === q.answer, q, i);
+            processAnswer(i === shuffledAnswer, q, i);
           });
           choiceDiv.appendChild(btn);
         });
@@ -154,13 +157,13 @@ Game.registerScreen('dojo', {
       // Highlight answers
       document.querySelectorAll('.choice-btn').forEach((b, i) => {
         b.disabled = true;
-        if (i === q.answer) b.classList.add('correct');
+        if (i === shuffledAnswer) b.classList.add('correct');
         else if (i === chosenIdx) b.classList.add('wrong');
       });
 
       if (correct) {
         senseiHp--;
-        score += 150;
+        score += 10;
         document.getElementById('dojo-score').textContent = score;
         sprite.setState('celebrate', 30);
         log(`⚔️ Hit! ${SENSEI_LIST[sensei].name} takes damage! HP: ${senseiHp}`);
@@ -180,7 +183,6 @@ Game.registerScreen('dojo', {
             document.getElementById('s-hp-bar').style.background = SENSEI_LIST[sensei].color;
             updateBars();
             log(`⚡ New challenger: ${SENSEI_LIST[sensei].name}!`);
-            qIndex++;
             renderQuestion();
             busy = false;
           }, 1000);
@@ -199,7 +201,6 @@ Game.registerScreen('dojo', {
       }
 
       setTimeout(() => {
-        qIndex++;
         document.getElementById('dojo-choices').innerHTML = '';
         renderQuestion();
         busy = false;

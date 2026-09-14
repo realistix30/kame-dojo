@@ -141,12 +141,14 @@ const Progress = (() => {
 
   // ── Supabase session save ─────────────────────────────────────────
   function saveSession(mode, level, score, correct, total) {
-    addCachedXP(score);
+    const daily          = getDailyStats(mode);
+    const limitWasActive = daily.answered >= DAILY_LIMITS[mode];
 
-    const daily = getDailyStats(mode);
+    if (!limitWasActive) addCachedXP(score);
+
     daily.answered += total;
     daily.correct  += correct;
-    daily.xpEarned += score;
+    if (!limitWasActive) daily.xpEarned += score;
     localStorage.setItem(getDailyKey(mode), JSON.stringify(daily));
 
     fetch(`${SUPABASE_URL}/rest/v1/sessions`, {

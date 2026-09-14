@@ -10,9 +10,12 @@ Game.registerScreen('receipt', {
   mount(el, { mode, level, score, correct, total, win = true }) {
     const meta     = MODE_META[mode] || { icon: '📜', name: mode, msg: { win: 'Done!', lose: 'Done!' } };
     const accuracy    = total > 0 ? Math.round((correct / total) * 100) : 0;
-    const dailyStats  = Progress.getDailyStats(mode);
-    const modeLimit   = Progress.DAILY_LIMITS[mode];
-    const dailyDone   = dailyStats.answered >= modeLimit;
+    const dailyStats      = Progress.getDailyStats(mode);
+    const modeLimit       = Progress.DAILY_LIMITS[mode];
+    const dailyDone       = dailyStats.answered >= modeLimit;
+    const wasOverLimit    = (dailyStats.answered - total) >= modeLimit;
+    const wrongCount      = total - correct;
+    const netXP           = wasOverLimit ? 0 : score - wrongCount * 10;
 
     // Check for level-up / level-down events (written during saveSession)
     const levelUp = (() => {
@@ -70,15 +73,22 @@ Game.registerScreen('receipt', {
               <span>${correct} / ${total} &nbsp;(${accuracy}%)</span>
             </div>
             <div class="receipt-row receipt-xp-row">
-              <span>XP EARNED</span>
-              <span class="txt-gold">+${score.toLocaleString()}</span>
+              <span>NET XP</span>
+              <span class="${wasOverLimit ? 'txt-dim' : netXP >= 0 ? 'txt-gold' : 'txt-red'}">
+                ${wasOverLimit ? '—' : (netXP >= 0 ? '+' : '') + netXP.toLocaleString()}
+              </span>
             </div>
             <div class="receipt-row">
               <span>TODAY</span>
-              <span class="${dailyDone ? 'txt-green' : ''}">${dailyStats.answered} / ${modeLimit} ${dailyDone ? '✓ Limit reached!' : 'questions'}</span>
+              <span class="${dailyDone ? 'txt-green' : ''}">${dailyStats.answered} / ${modeLimit} ${dailyDone ? '✓' : 'questions'}</span>
             </div>
           </div>
-          ${dailyDone ? `<div class="daily-done-banner">🌙 Daily goal complete! Rest well — your brain is consolidating.</div>` : ''}
+          ${wasOverLimit
+            ? `<div class="daily-done-banner" style="background:#2a1a00;border-color:#aa6600;color:#ffaa44">⚠️ No XP awarded — daily limit was already reached.</div>`
+            : dailyDone
+              ? `<div class="daily-done-banner">🎉 Daily goal complete! Come back tomorrow for more XP.</div>`
+              : ''
+          }
 
           <div class="receipt-rule"></div>
 
@@ -126,8 +136,7 @@ Game.registerScreen('receipt', {
 
     document.getElementById('r-again').addEventListener('click', () => {
       if (Progress.isDailyLimitReached(mode)) {
-        const wrap = el.querySelector('.receipt-wrap');
-        _showDailyModal(wrap || el, mode);
+        _showDailyModal(el, mode);
       } else {
         Game.showScreen(mode);
       }
