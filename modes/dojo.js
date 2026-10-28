@@ -50,6 +50,7 @@ Game.registerScreen('dojo', {
         <div class="battle-log" id="battle-log">⚔️ Battle start! Answer questions to attack!</div>
         <div class="question-box" id="question-box"></div>
         <div class="dojo-choices" id="dojo-choices"></div>
+        <div class="dojo-explanation" id="dojo-explanation"></div>
         <div class="score-row">Score: <b id="dojo-score">0</b></div>
       </div>`;
 
@@ -149,17 +150,38 @@ Game.registerScreen('dojo', {
       }
     }
 
+    function clearRound() {
+      document.getElementById('dojo-explanation').innerHTML = '';
+      document.getElementById('dojo-explanation').className = 'dojo-explanation';
+      document.getElementById('dojo-choices').innerHTML = '';
+      document.getElementById('question-box').innerHTML = '';
+    }
+
+    function showExplanation(ok, text, onNext) {
+      const div = document.getElementById('dojo-explanation');
+      const xpTag = ok ? '' : ' <span class="xp-deduct">−10 XP</span>';
+      div.className = 'dojo-explanation ' + (ok ? 'fb-ok' : 'fb-bad');
+      div.innerHTML = `<div class="dash-fb-row">
+        <span class="dash-fb-text">${ok ? '✓' : '✗'} ${text}${xpTag}</span>
+        <button class="dash-next-btn">Next →</button>
+      </div>`;
+      div.querySelector('.dash-next-btn').addEventListener('click', onNext);
+    }
+
     function processAnswer(correct, q, chosenIdx = -1) {
       busy = true;
       attempted++;
       if (correct) correctCount++;
 
-      // Highlight answers
       document.querySelectorAll('.choice-btn').forEach((b, i) => {
         b.disabled = true;
         if (i === shuffledAnswer) b.classList.add('correct');
         else if (i === chosenIdx) b.classList.add('wrong');
       });
+      const submitBtn = document.getElementById('reorder-submit');
+      if (submitBtn) submitBtn.disabled = true;
+
+      let onNext;
 
       if (correct) {
         senseiHp--;
@@ -172,39 +194,38 @@ Game.registerScreen('dojo', {
         if (senseiHp <= 0) {
           sensei++;
           if (sensei >= SENSEI_LIST.length) {
-            setTimeout(() => endBattle('win'), 1200);
-            return;
+            onNext = () => endBattle('win');
+          } else {
+            onNext = () => {
+              maxSHp   = SENSEI_LIST[sensei].hp;
+              senseiHp = maxSHp;
+              document.getElementById('s-name').textContent   = SENSEI_LIST[sensei].name;
+              document.getElementById('s-sprite').textContent = SENSEI_LIST[sensei].sprite;
+              document.getElementById('s-hp-bar').style.background = SENSEI_LIST[sensei].color;
+              updateBars();
+              log(`⚡ New challenger: ${SENSEI_LIST[sensei].name}!`);
+              clearRound();
+              renderQuestion();
+              busy = false;
+            };
           }
-          setTimeout(() => {
-            maxSHp   = SENSEI_LIST[sensei].hp;
-            senseiHp = maxSHp;
-            document.getElementById('s-name').textContent   = SENSEI_LIST[sensei].name;
-            document.getElementById('s-sprite').textContent = SENSEI_LIST[sensei].sprite;
-            document.getElementById('s-hp-bar').style.background = SENSEI_LIST[sensei].color;
-            updateBars();
-            log(`⚡ New challenger: ${SENSEI_LIST[sensei].name}!`);
-            renderQuestion();
-            busy = false;
-          }, 1000);
-          return;
+        } else {
+          onNext = () => { clearRound(); renderQuestion(); busy = false; };
         }
       } else {
         Progress.deductXP(10);
         playerHp--;
         sprite.setState('hurt', 40);
-        log(`💥 Wrong! ${SENSEI_LIST[sensei].name} attacks! ${q.explanation} <span class="xp-deduct">−10 XP</span>`);
+        log(`💥 ${SENSEI_LIST[sensei].name} attacks!`);
         updateBars();
         if (playerHp <= 0) {
-          setTimeout(() => endBattle('lose'), 1200);
-          return;
+          onNext = () => endBattle('lose');
+        } else {
+          onNext = () => { clearRound(); renderQuestion(); busy = false; };
         }
       }
 
-      setTimeout(() => {
-        document.getElementById('dojo-choices').innerHTML = '';
-        renderQuestion();
-        busy = false;
-      }, 1200);
+      showExplanation(correct, q.explanation, onNext);
     }
 
     function endBattle(result) {
