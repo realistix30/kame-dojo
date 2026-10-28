@@ -187,6 +187,14 @@ Game.registerScreen('menu', {
             </button>`;
           }).join('')}
         </div>
+        <button class="mock-exam-card" id="menu-mock-btn">
+          <span class="mock-exam-icon">📝</span>
+          <span class="mock-exam-info">
+            <span class="mock-exam-name">Mock Exam — 模擬試験</span>
+            <span class="mock-exam-desc">Full JLPT ${progressLevel.toUpperCase()} exam simulation with timer</span>
+          </span>
+          <span style="color:var(--text-dim);font-size:1.2rem">▶</span>
+        </button>
       </div>`;
 
     // Animate kame on menu canvas
@@ -219,6 +227,7 @@ Game.registerScreen('menu', {
     document.getElementById('menu-rank-btn').addEventListener('click', () => Game.showScreen('rankings'));
     document.getElementById('menu-global-btn').addEventListener('click', () => Game.showScreen('leaderboard'));
     document.getElementById('menu-cal-btn').addEventListener('click', () => Game.showScreen('calibration'));
+    document.getElementById('menu-mock-btn').addEventListener('click', () => Game.showScreen('mock'));
 
     // Mode cards — show info gate when daily limit reached, then allow entry without XP
     el.querySelectorAll('.mode-card').forEach(card => {

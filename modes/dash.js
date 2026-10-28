@@ -40,7 +40,6 @@ Game.registerScreen('dash', {
     let lives         = 3;
     let gameActive    = true;
     let answered      = false;
-    let feedbackTimer = 0;
     let currentAnswer = 0;
     let currentQ      = null;
 
@@ -115,7 +114,7 @@ Game.registerScreen('dash', {
     function onChoice(idx) {
       if (!gameActive || answered || !obstacle) return;
       answered = true;
-      const ok  = idx === currentAnswer;
+      const ok = idx === currentAnswer;
 
       document.querySelectorAll('.choice-btn').forEach((b, i) => {
         b.disabled = true;
@@ -123,7 +122,6 @@ Game.registerScreen('dash', {
         else if (i === idx && !ok) b.classList.add('wrong');
       });
 
-      showFeedback(ok, currentQ.explanation);
       attempted++;
 
       if (ok) {
@@ -132,27 +130,38 @@ Game.registerScreen('dash', {
         document.getElementById('dash-score').textContent = score;
         sprite.setState('celebrate', 30);
         obstacle = null;
-        feedbackTimer = 60;
+        showFeedback(true, currentQ.explanation, attempted >= 20 ? 'end' : 'next');
       } else {
         Progress.deductXP(10);
         lives = Math.max(0, lives - 1);
         updateLives();
         sprite.setState('hurt', 40);
         if (lives <= 0) {
-          feedbackTimer = 90;
-          setTimeout(() => endGame(), 1500);
           gameActive = false;
+          showFeedback(false, currentQ.explanation, 'end');
         } else {
           if (obstacle) obstacle.x = canvas.width * 0.7;
-          feedbackTimer = 50;
+          showFeedback(false, currentQ.explanation, attempted >= 20 ? 'end' : 'next');
         }
       }
     }
 
-    function showFeedback(ok, text) {
+    function showFeedback(ok, text, mode) {
       const fb = document.getElementById('dash-feedback');
-      fb.innerHTML = ok ? `✓ ${text}` : `✗ ${text} <span class="xp-deduct">−10 XP</span>`;
+      const xpTag = ok ? '' : ' <span class="xp-deduct">−10 XP</span>';
+      const icon  = ok ? '✓' : '✗';
+      const btnLabel = mode === 'end' ? 'See Results →' : 'Next →';
       fb.className = 'dash-feedback ' + (ok ? 'fb-ok' : 'fb-bad');
+      fb.innerHTML = `<div class="dash-fb-row">
+        <span class="dash-fb-text">${icon} ${text}${xpTag}</span>
+        <button class="dash-next-btn">${btnLabel}</button>
+      </div>`;
+      fb.querySelector('.dash-next-btn').addEventListener('click', () => {
+        fb.innerHTML = '';
+        fb.className = 'dash-feedback';
+        if (mode === 'end') endGame();
+        else nextQuestion();
+      });
     }
 
     function updateLives() {
@@ -300,29 +309,19 @@ Game.registerScreen('dash', {
 
         // Missed — didn't answer in time
         if (obstacle.x < KAME_X - 30) {
-          obstacle   = null;
-          answered   = true;
+          obstacle = null;
+          answered = true;
           attempted++;
           Progress.deductXP(10);
-          lives      = Math.max(0, lives - 1);
+          lives = Math.max(0, lives - 1);
           updateLives();
           sprite.setState('hurt', 40);
-          showFeedback(false, 'Too slow! ' + (currentQ?.explanation || ''));
-          feedbackTimer = 60;
-
           if (lives <= 0) {
-            setTimeout(() => endGame(), 1200);
             gameActive = false;
+            showFeedback(false, 'Too slow! ' + (currentQ?.explanation || ''), 'end');
+          } else {
+            showFeedback(false, 'Too slow! ' + (currentQ?.explanation || ''), attempted >= 20 ? 'end' : 'next');
           }
-        }
-      }
-
-      if (feedbackTimer > 0) {
-        feedbackTimer--;
-        if (feedbackTimer === 0 && gameActive) {
-          document.getElementById('dash-feedback').textContent = '';
-          document.getElementById('dash-feedback').className   = 'dash-feedback';
-          nextQuestion();
         }
       }
 
